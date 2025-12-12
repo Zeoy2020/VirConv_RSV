@@ -57,7 +57,9 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         # log to console and tensorboard
         if rank == 0:
             pbar.update()
-            pbar.set_postfix(dict(total_it=accumulated_iter))
+            pbar_postfix = dict(total_it=accumulated_iter)
+            pbar_postfix.update(disp_dict)
+            pbar.set_postfix(pbar_postfix)
             tbar.set_postfix(disp_dict)
             tbar.refresh()
 
