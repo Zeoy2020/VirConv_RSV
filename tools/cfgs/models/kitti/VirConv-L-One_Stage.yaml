@@ -194,102 +194,9 @@ MODEL:
                 'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
             }
 
-
-    ROI_HEAD:
-        NAME: TEDMHead
-        CLASS_AGNOSTIC: True
-        ROT_NUM: 1 # set 1 to simply keep a similar architecture as Voxel-RCNN
-
-        SHARED_FC: [256, 256]
-        CLS_FC: [256, 256]
-        REG_FC: [256, 256]
-        DP_RATIO: 0.01
-
-        NMS_CONFIG:
-            TRAIN:
-                NMS_TYPE: nms_gpu
-                MULTI_CLASSES_NMS: False
-                NMS_PRE_MAXSIZE: 4000
-                NMS_POST_MAXSIZE: 512
-                NMS_THRESH: 0.8
-            TEST:
-                NMS_TYPE: nms_gpu
-                MULTI_CLASSES_NMS: False
-                USE_FAST_NMS: True
-                SCORE_THRESH: 0.0
-                NMS_PRE_MAXSIZE: 2000
-                NMS_POST_MAXSIZE: 50
-                NMS_THRESH: 0.75
-
-        ROI_GRID_POOL:
-            FEATURES_SOURCE: ['x_conv3','x_conv4']
-            PRE_MLP: True
-            GRID_SIZE: 6
-            POOL_LAYERS:
-                x_conv3:
-                    MLPS: [[32, 32], [32, 32]]
-                    QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
-                    POOL_RADIUS: [0.4, 0.8]
-                    NSAMPLE: [16, 16]
-                    POOL_METHOD: max_pool
-                x_conv4:
-                    MLPS: [[32, 32], [32, 32]]
-                    QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
-                    POOL_RADIUS: [0.8, 1.6]
-                    NSAMPLE: [16, 16]
-                    POOL_METHOD: max_pool
-
-        ROI_GRID_POOL_MM:
-            FEATURES_SOURCE: ['x_conv3','x_conv4']
-            PRE_MLP: True
-            GRID_SIZE: 4
-            POOL_LAYERS:
-                x_conv3:
-                    MLPS: [[32, 32], [32, 32]]
-                    QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
-                    POOL_RADIUS: [0.4, 0.8]
-                    NSAMPLE: [16, 16]
-                    POOL_METHOD: max_pool
-                x_conv4:
-                    MLPS: [[32, 32], [32, 32]]
-                    QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
-                    POOL_RADIUS: [0.8, 1.6]
-                    NSAMPLE: [16, 16]
-                    POOL_METHOD: max_pool
-
-
-        TARGET_CONFIG:
-            BOX_CODER: ResidualCoder
-            STAGE0:
-                ROI_PER_IMAGE: 160
-                FG_RATIO: 0.5
-                SAMPLE_ROI_BY_EACH_CLASS: True
-                CLS_SCORE_TYPE: roi_iou_x
-                CLS_FG_THRESH: [0.75]
-                CLS_BG_THRESH: [0.25]
-                CLS_BG_THRESH_LO: 0.1
-                HARD_BG_RATIO: 0.8
-                REG_FG_THRESH: [0.55]
-                ENABLE_HARD_SAMPLING: True
-                HARD_SAMPLING_THRESH: [0.5]
-                HARD_SAMPLING_RATIO: [0.5]
-
-        LOSS_CONFIG:
-            CLS_LOSS: BinaryCrossEntropy
-            REG_LOSS: smooth-l1
-            CORNER_LOSS_REGULARIZATION: True
-            GRID_3D_IOU_LOSS: False
-            LOSS_WEIGHTS: {
-                'rcnn_cls_weight': 1.0,
-                'rcnn_reg_weight': 1.0,
-                'rcnn_corner_weight': 1.0,
-                'rcnn_iou3d_weight': 1.0,
-                'code_weights': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-            }
-
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-        SCORE_THRESH: 0.5
+        SCORE_THRESH: 0.1
         OUTPUT_RAW_SCORE: False
         EVAL_METRIC: kitti
         NMS_CONFIG:
@@ -298,7 +205,6 @@ MODEL:
             NMS_THRESH: 0.1
             NMS_PRE_MAXSIZE: 4096
             NMS_POST_MAXSIZE: 500
-
 
 OPTIMIZATION:
     BATCH_SIZE_PER_GPU: 2

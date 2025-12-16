@@ -42,11 +42,11 @@ DATA_CONFIG:
               DB_INFO_PATH:
                 - kitti_dbinfos_train_mm.pkl
               PREPARE: {
-                filter_by_min_points: ['Car:5', 'Pedestrian:5', 'Cyclist:5'],
+                filter_by_min_points: ['Car:5'],
                 filter_by_difficulty: [-1],
               }
 
-              SAMPLE_GROUPS: ['Car:10', 'Pedestrian:10', 'Cyclist:10']
+              SAMPLE_GROUPS: ['Car:10']
 
               MIN_SAMPLING_DIS: 0
               MAX_SAMPLING_DIS: 20

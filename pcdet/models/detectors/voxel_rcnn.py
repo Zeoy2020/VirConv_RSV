@@ -24,7 +24,9 @@ class VoxelRCNN(Detector3DTemplate):
     def get_training_loss(self):
         disp_dict = {}
         loss_rpn, tb_dict = self.dense_head.get_loss()
-        loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)#
+        loss_rcnn = 0
+        if self.model_cfg.get('ROI_HEAD', None):
+            loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)
 
         loss =  loss_rpn + loss_rcnn
         return loss, tb_dict, disp_dict
