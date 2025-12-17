@@ -265,14 +265,14 @@ MODEL:
                 FG_RATIO: 0.5
                 SAMPLE_ROI_BY_EACH_CLASS: True
                 CLS_SCORE_TYPE: roi_iou_x
-                CLS_FG_THRESH: [0.75]
-                CLS_BG_THRESH: [0.25]
+                CLS_FG_THRESH: [0.75, 0.6, 0.6]  
+                CLS_BG_THRESH: [0.25, 0.2, 0.2]
                 CLS_BG_THRESH_LO: 0.1
                 HARD_BG_RATIO: 0.8
-                REG_FG_THRESH: [0.55]
+                REG_FG_THRESH: [0.55, 0.45, 0.45]
                 ENABLE_HARD_SAMPLING: True
-                HARD_SAMPLING_THRESH: [0.5]
-                HARD_SAMPLING_RATIO: [0.5]
+                HARD_SAMPLING_THRESH: [0.5, 0.4, 0.4]
+                HARD_SAMPLING_RATIO: [0.5, 0.5, 0.5]
 
         LOSS_CONFIG:
             CLS_LOSS: BinaryCrossEntropy
@@ -289,7 +289,7 @@ MODEL:
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-        SCORE_THRESH: 0.5
+        SCORE_THRESH: 0.3
         OUTPUT_RAW_SCORE: False
         EVAL_METRIC: kitti
         NMS_CONFIG:

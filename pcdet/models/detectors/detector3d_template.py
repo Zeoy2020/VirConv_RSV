@@ -280,7 +280,7 @@ class Detector3DTemplate(nn.Module):
                     final_labels = label_preds[selected]
                     final_boxes = box_preds[selected]
 
-
+            # final_boxes 是经过 nms 后的预测框，src_box_preds是 nms 前的预测框
             recall_dict = self.generate_recall_record(
                 box_preds=final_boxes if 'rois' not in batch_dict else src_box_preds,
                 recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
@@ -307,7 +307,7 @@ class Detector3DTemplate(nn.Module):
     def generate_recall_record(box_preds, recall_dict, batch_index, data_dict=None, thresh_list=None):
         if 'gt_boxes' not in data_dict:
             return recall_dict
-
+        
         rois = data_dict['rois'][batch_index] if 'rois' in data_dict else None
         gt_boxes = data_dict['gt_boxes'][batch_index]
 

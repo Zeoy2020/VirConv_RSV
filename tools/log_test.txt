@@ -17,7 +17,7 @@ INFO:torch.distributed.launcher.api:Starting elastic_operator with launch config
   log_dir          : None
   metrics_cfg      : {}
 
-INFO:torch.distributed.elastic.agent.server.local_elastic_agent:log directory set to: /tmp/torchelastic_djkh7yjf/none_8oefx549
+INFO:torch.distributed.elastic.agent.server.local_elastic_agent:log directory set to: /tmp/torchelastic_3ng_ro5_/none_30ush8yw
 INFO:torch.distributed.elastic.agent.server.api:[default] starting workers for entrypoint: python
 INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous'ing worker group
 /home/hznuojai/anaconda3/envs/RSV/lib/python3.8/site-packages/torch/distributed/elastic/utils/store.py:52: FutureWarning: This is an experimental API and will be changed in future.
@@ -35,152 +35,251 @@ INFO:torch.distributed.elastic.agent.server.api:[default] Rendezvous complete fo
   global_world_sizes=[2, 2]
 
 INFO:torch.distributed.elastic.agent.server.api:[default] Starting worker group
-INFO:torch.distributed.elastic.multiprocessing:Setting worker0 reply file to: /tmp/torchelastic_djkh7yjf/none_8oefx549/attempt_0/0/error.json
-INFO:torch.distributed.elastic.multiprocessing:Setting worker1 reply file to: /tmp/torchelastic_djkh7yjf/none_8oefx549/attempt_0/1/error.json
+INFO:torch.distributed.elastic.multiprocessing:Setting worker0 reply file to: /tmp/torchelastic_3ng_ro5_/none_30ush8yw/attempt_0/0/error.json
+INFO:torch.distributed.elastic.multiprocessing:Setting worker1 reply file to: /tmp/torchelastic_3ng_ro5_/none_30ush8yw/attempt_0/1/error.json
 /home/hznuojai/zhouyi/VirConv/pcdet/utils/box_np_ops.py:336: NumbaDeprecationWarning: [1mThe 'nopython' keyword argument was not supplied to the 'numba.jit' decorator. The implicit default value for this argument is currently False, but it will be changed to True in Numba 0.59.0. See https://numba.readthedocs.io/en/stable/reference/deprecation.html#deprecation-of-object-mode-fall-back-behaviour-when-using-jit for details.[0m
   def points_in_convex_polygon_jit(points, polygon, clockwise=True):
 /home/hznuojai/zhouyi/VirConv/pcdet/utils/box_np_ops.py:336: NumbaDeprecationWarning: [1mThe 'nopython' keyword argument was not supplied to the 'numba.jit' decorator. The implicit default value for this argument is currently False, but it will be changed to True in Numba 0.59.0. See https://numba.readthedocs.io/en/stable/reference/deprecation.html#deprecation-of-object-mode-fall-back-behaviour-when-using-jit for details.[0m
   def points_in_convex_polygon_jit(points, polygon, clockwise=True):
-2025-12-16 16:18:54,981   INFO  **********************Start logging**********************
-2025-12-16 16:18:54,981   INFO  CUDA_VISIBLE_DEVICES=0,1
-2025-12-16 16:18:54,981   INFO  total_batch_size: 16
-2025-12-16 16:18:54,981   INFO  cfg_file         cfgs/models/kitti/VirConv-L-One_Stage.yaml
-2025-12-16 16:18:54,981   INFO  batch_size       8
-2025-12-16 16:18:54,982   INFO  workers          0
-2025-12-16 16:18:54,982   INFO  extra_tag        default
-2025-12-16 16:18:54,982   INFO  ckpt             ../output/models/kitti/VirConv-L-One_Stage/default/ckpt/checkpoint_epoch_30.pth
-2025-12-16 16:18:54,982   INFO  launcher         pytorch
-2025-12-16 16:18:54,982   INFO  tcp_port         18888
-2025-12-16 16:18:54,982   INFO  local_rank       0
-2025-12-16 16:18:54,982   INFO  set_cfgs         None
-2025-12-16 16:18:54,982   INFO  max_waiting_mins 30
-2025-12-16 16:18:54,982   INFO  start_epoch      0
-2025-12-16 16:18:54,982   INFO  eval_tag         default
-2025-12-16 16:18:54,982   INFO  eval_all         False
-2025-12-16 16:18:54,982   INFO  ckpt_dir         None
-2025-12-16 16:18:54,982   INFO  save_to_file     False
-2025-12-16 16:18:54,982   INFO  cfg.ROOT_DIR: /home/hznuojai/zhouyi/VirConv
-2025-12-16 16:18:54,982   INFO  cfg.LOCAL_RANK: 0
-2025-12-16 16:18:54,982   INFO  cfg.CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
-2025-12-16 16:18:54,982   INFO  
+2025-12-17 16:15:29,745   INFO  **********************Start logging**********************
+2025-12-17 16:15:29,746   INFO  CUDA_VISIBLE_DEVICES=0,1
+2025-12-17 16:15:29,746   INFO  total_batch_size: 16
+2025-12-17 16:15:29,746   INFO  cfg_file         cfgs/models/kitti/VirConv-L.yaml
+2025-12-17 16:15:29,746   INFO  batch_size       8
+2025-12-17 16:15:29,746   INFO  workers          0
+2025-12-17 16:15:29,746   INFO  extra_tag        default
+2025-12-17 16:15:29,746   INFO  ckpt             ../output/models/kitti/VirConv-L/default/ckpt/checkpoint_epoch_31.pth
+2025-12-17 16:15:29,746   INFO  launcher         pytorch
+2025-12-17 16:15:29,747   INFO  tcp_port         18888
+2025-12-17 16:15:29,747   INFO  local_rank       0
+2025-12-17 16:15:29,747   INFO  set_cfgs         None
+2025-12-17 16:15:29,747   INFO  max_waiting_mins 30
+2025-12-17 16:15:29,747   INFO  start_epoch      0
+2025-12-17 16:15:29,747   INFO  eval_tag         default
+2025-12-17 16:15:29,747   INFO  eval_all         False
+2025-12-17 16:15:29,747   INFO  ckpt_dir         None
+2025-12-17 16:15:29,747   INFO  save_to_file     False
+2025-12-17 16:15:29,747   INFO  cfg.ROOT_DIR: /home/hznuojai/zhouyi/VirConv
+2025-12-17 16:15:29,748   INFO  cfg.LOCAL_RANK: 0
+2025-12-17 16:15:29,748   INFO  cfg.CLASS_NAMES: ['Car', 'Pedestrian', 'Cyclist']
+2025-12-17 16:15:29,748   INFO  
 cfg.DATA_CONFIG = edict()
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.DATA_PATH: ../data/kitti
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.DATASET: KittiDatasetMM
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.MM_PATH: velodyne_depth
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
-2025-12-16 16:18:54,982   INFO  
+2025-12-17 16:15:29,748   INFO  cfg.DATA_CONFIG.DATA_PATH: ../data/kitti
+2025-12-17 16:15:29,748   INFO  cfg.DATA_CONFIG.DATASET: KittiDatasetMM
+2025-12-17 16:15:29,748   INFO  cfg.DATA_CONFIG.MM_PATH: velodyne_depth
+2025-12-17 16:15:29,748   INFO  cfg.DATA_CONFIG.POINT_CLOUD_RANGE: [0, -40, -3, 70.4, 40, 1]
+2025-12-17 16:15:29,748   INFO  
 cfg.DATA_CONFIG.DATA_SPLIT = edict()
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.DATA_SPLIT.train: train
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.DATA_SPLIT.test: val
-2025-12-16 16:18:54,982   INFO  
+2025-12-17 16:15:29,748   INFO  cfg.DATA_CONFIG.DATA_SPLIT.train: train
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.DATA_SPLIT.test: val
+2025-12-17 16:15:29,749   INFO  
 cfg.DATA_CONFIG.INFO_PATH = edict()
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.INFO_PATH.train: ['kitti_infos_train.pkl']
-2025-12-16 16:18:54,982   INFO  cfg.DATA_CONFIG.INFO_PATH.test: ['kitti_infos_val.pkl']
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.FOV_POINTS_ONLY: True
-2025-12-16 16:18:54,983   INFO  
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.INFO_PATH.train: ['kitti_infos_train.pkl']
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.INFO_PATH.test: ['kitti_infos_val.pkl']
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.FOV_POINTS_ONLY: True
+2025-12-17 16:15:29,749   INFO  
 cfg.DATA_CONFIG.DATA_AUGMENTOR = edict()
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.DISABLE_AUG_LIST: ['placeholder']
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.AUG_CONFIG_LIST: [{'NAME': 'gt_sampling', 'USE_ROAD_PLANE': True, 'DB_INFO_PATH': ['kitti_dbinfos_train_mm.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:10', 'Pedestrian:10', 'Cyclist:10'], 'NUM_POINT_FEATURES': 8, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, -0.2], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'da_sampling', 'USE_ROAD_PLANE': True, 'DB_INFO_PATH': ['kitti_dbinfos_train_mm.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:10', 'Pedestrian:10', 'Cyclist:10'], 'MIN_SAMPLING_DIS': 0, 'MAX_SAMPLING_DIS': 20, 'OCCLUSION_NOISE': 0.2, 'OCCLUSION_OFFSET': 2.0, 'SAMPLING_METHOD': 'LiDAR-aware', 'VERT_RES': 0.006, 'HOR_RES': 0.003, 'NUM_POINT_FEATURES': 8, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, -0.2], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'random_local_noise', 'LOCAL_ROT_RANGE': [-0.78539816, 0.78539816], 'TRANSLATION_STD': [1.0, 1.0, 0.5], 'GLOBAL_ROT_RANGE': [0.0, 0.0], 'EXTRA_WIDTH': [0.2, 0.2, 0.0]}, {'NAME': 'random_world_rotation', 'WORLD_ROT_ANGLE': [-0.78539816, 0.78539816]}, {'NAME': 'random_world_flip', 'ALONG_AXIS_LIST': ['x']}, {'NAME': 'random_world_scaling', 'WORLD_SCALE_RANGE': [0.95, 1.05]}, {'NAME': 'random_local_pyramid_aug', 'DROP_PROB': 0.25, 'SPARSIFY_PROB': 0.05, 'SPARSIFY_MAX_NUM': 50, 'SWAP_PROB': 0.1, 'SWAP_MAX_NUM': 50}]
-2025-12-16 16:18:54,983   INFO  
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.DISABLE_AUG_LIST: ['placeholder']
+2025-12-17 16:15:29,749   INFO  cfg.DATA_CONFIG.DATA_AUGMENTOR.AUG_CONFIG_LIST: [{'NAME': 'gt_sampling', 'USE_ROAD_PLANE': True, 'DB_INFO_PATH': ['kitti_dbinfos_train_mm.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:10', 'Pedestrian:10', 'Cyclist:10'], 'NUM_POINT_FEATURES': 8, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, -0.2], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'da_sampling', 'USE_ROAD_PLANE': True, 'DB_INFO_PATH': ['kitti_dbinfos_train_mm.pkl'], 'PREPARE': {'filter_by_min_points': ['Car:5', 'Pedestrian:5', 'Cyclist:5'], 'filter_by_difficulty': [-1]}, 'SAMPLE_GROUPS': ['Car:10', 'Pedestrian:10', 'Cyclist:10'], 'MIN_SAMPLING_DIS': 0, 'MAX_SAMPLING_DIS': 20, 'OCCLUSION_NOISE': 0.2, 'OCCLUSION_OFFSET': 2.0, 'SAMPLING_METHOD': 'LiDAR-aware', 'VERT_RES': 0.006, 'HOR_RES': 0.003, 'NUM_POINT_FEATURES': 8, 'DATABASE_WITH_FAKELIDAR': False, 'REMOVE_EXTRA_WIDTH': [0.0, 0.0, -0.2], 'LIMIT_WHOLE_SCENE': False}, {'NAME': 'random_local_noise', 'LOCAL_ROT_RANGE': [-0.78539816, 0.78539816], 'TRANSLATION_STD': [1.0, 1.0, 0.5], 'GLOBAL_ROT_RANGE': [0.0, 0.0], 'EXTRA_WIDTH': [0.2, 0.2, 0.0]}, {'NAME': 'random_world_rotation', 'WORLD_ROT_ANGLE': [-0.78539816, 0.78539816]}, {'NAME': 'random_world_flip', 'ALONG_AXIS_LIST': ['x']}, {'NAME': 'random_world_scaling', 'WORLD_SCALE_RANGE': [0.95, 1.05]}, {'NAME': 'random_local_pyramid_aug', 'DROP_PROB': 0.25, 'SPARSIFY_PROB': 0.05, 'SPARSIFY_MAX_NUM': 50, 'SWAP_PROB': 0.1, 'SWAP_MAX_NUM': 50}]
+2025-12-17 16:15:29,749   INFO  
 cfg.DATA_CONFIG.POINT_FEATURE_ENCODING = edict()
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.encoding_type: absolute_coordinates_encoding_mm
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.used_feature_list: ['x', 'y', 'z', 'intensity']
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.src_feature_list: ['x', 'y', 'z', 'intensity']
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.num_features: 8
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.DATA_PROCESSOR: [{'NAME': 'mask_points_and_boxes_outside_range', 'REMOVE_OUTSIDE_BOXES': True}, {'NAME': 'shuffle_points', 'SHUFFLE_ENABLED': {'train': True, 'test': False}}, {'NAME': 'transform_points_to_voxels', 'VOXEL_SIZE': [0.05, 0.05, 0.05], 'LIDAR_FIRST': True, 'MAX_POINTS_PER_VOXEL': 5, 'MAX_NUMBER_OF_VOXELS': {'train': 40000, 'test': 40000}}]
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG._BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.INPUT_DISCARD_RATE: 0.8
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.LATER_FUSION: False
-2025-12-16 16:18:54,983   INFO  cfg.DATA_CONFIG.USE_VAN: True
-2025-12-16 16:18:54,983   INFO  
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.encoding_type: absolute_coordinates_encoding_mm
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.used_feature_list: ['x', 'y', 'z', 'intensity']
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.src_feature_list: ['x', 'y', 'z', 'intensity']
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.POINT_FEATURE_ENCODING.num_features: 8
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.DATA_PROCESSOR: [{'NAME': 'mask_points_and_boxes_outside_range', 'REMOVE_OUTSIDE_BOXES': True}, {'NAME': 'shuffle_points', 'SHUFFLE_ENABLED': {'train': True, 'test': False}}, {'NAME': 'transform_points_to_voxels', 'VOXEL_SIZE': [0.05, 0.05, 0.05], 'LIDAR_FIRST': True, 'MAX_POINTS_PER_VOXEL': 5, 'MAX_NUMBER_OF_VOXELS': {'train': 40000, 'test': 40000}}]
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG._BASE_CONFIG_: cfgs/dataset_configs/kitti_dataset.yaml
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.INPUT_DISCARD_RATE: 0.8
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.LATER_FUSION: False
+2025-12-17 16:15:29,750   INFO  cfg.DATA_CONFIG.USE_VAN: True
+2025-12-17 16:15:29,751   INFO  
 cfg.MODEL = edict()
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.NAME: VoxelRCNN
-2025-12-16 16:18:54,983   INFO  
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.NAME: VoxelRCNN
+2025-12-17 16:15:29,751   INFO  
 cfg.MODEL.VFE = edict()
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.VFE.NAME: MeanVFE
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.VFE.MODEL: max
-2025-12-16 16:18:54,983   INFO  
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.VFE.NAME: MeanVFE
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.VFE.MODEL: max
+2025-12-17 16:15:29,751   INFO  
 cfg.MODEL.BACKBONE_3D = edict()
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.BACKBONE_3D.NAME: VirConvL8x
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.BACKBONE_3D.NUM_FILTERS: [16, 32, 64, 64]
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.BACKBONE_3D.RETURN_NUM_FEATURES_AS_DICT: True
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.BACKBONE_3D.OUT_FEATURES: 64
-2025-12-16 16:18:54,983   INFO  cfg.MODEL.BACKBONE_3D.LAYER_DISCARD_RATE: 0.1
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.BACKBONE_3D.NAME: VirConvL8x
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.BACKBONE_3D.NUM_FILTERS: [16, 32, 64, 64]
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.BACKBONE_3D.RETURN_NUM_FEATURES_AS_DICT: True
+2025-12-17 16:15:29,751   INFO  cfg.MODEL.BACKBONE_3D.OUT_FEATURES: 64
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_3D.LAYER_DISCARD_RATE: 0.1
+2025-12-17 16:15:29,752   INFO  
 cfg.MODEL.MAP_TO_BEV = edict()
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.MAP_TO_BEV.NAME: HeightCompression
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.MAP_TO_BEV.NUM_BEV_FEATURES: 256
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.MAP_TO_BEV.NAME: HeightCompression
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.MAP_TO_BEV.NUM_BEV_FEATURES: 256
+2025-12-17 16:15:29,752   INFO  
 cfg.MODEL.BACKBONE_2D = edict()
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.NAME: BaseBEVBackbone
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.LAYER_NUMS: [4, 4]
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.LAYER_STRIDES: [1, 2]
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.NUM_FILTERS: [64, 128]
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.UPSAMPLE_STRIDES: [1, 2]
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.BACKBONE_2D.NUM_UPSAMPLE_FILTERS: [128, 128]
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_2D.NAME: BaseBEVBackbone
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_2D.LAYER_NUMS: [4, 4]
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_2D.LAYER_STRIDES: [1, 2]
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_2D.NUM_FILTERS: [64, 128]
+2025-12-17 16:15:29,752   INFO  cfg.MODEL.BACKBONE_2D.UPSAMPLE_STRIDES: [1, 2]
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.BACKBONE_2D.NUM_UPSAMPLE_FILTERS: [128, 128]
+2025-12-17 16:15:29,753   INFO  
 cfg.MODEL.DENSE_HEAD = edict()
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.NAME: AnchorHeadSingle
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.CLASS_AGNOSTIC: False
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.USE_DIRECTION_CLASSIFIER: True
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.DIR_OFFSET: 0.78539
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.DIR_LIMIT_OFFSET: 0.0
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.NUM_DIR_BINS: 2
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.ANCHOR_GENERATOR_CONFIG: [{'class_name': 'Car', 'anchor_sizes': [[3.9, 1.6, 1.56]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-1.78], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.6, 'unmatched_threshold': 0.45}, {'class_name': 'Pedestrian', 'anchor_sizes': [[0.8, 0.6, 1.73]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-0.6], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.5, 'unmatched_threshold': 0.35}, {'class_name': 'Cyclist', 'anchor_sizes': [[1.76, 0.6, 1.73]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-0.6], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.5, 'unmatched_threshold': 0.35}]
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.NAME: AnchorHeadSingle
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.CLASS_AGNOSTIC: False
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.USE_DIRECTION_CLASSIFIER: True
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.DIR_OFFSET: 0.78539
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.DIR_LIMIT_OFFSET: 0.0
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.NUM_DIR_BINS: 2
+2025-12-17 16:15:29,753   INFO  cfg.MODEL.DENSE_HEAD.ANCHOR_GENERATOR_CONFIG: [{'class_name': 'Car', 'anchor_sizes': [[3.9, 1.6, 1.56]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-1.78], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.6, 'unmatched_threshold': 0.45}, {'class_name': 'Pedestrian', 'anchor_sizes': [[0.8, 0.6, 1.73]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-0.6], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.5, 'unmatched_threshold': 0.35}, {'class_name': 'Cyclist', 'anchor_sizes': [[1.76, 0.6, 1.73]], 'anchor_rotations': [0, 1.57], 'anchor_bottom_heights': [-0.6], 'align_center': False, 'feature_map_stride': 8, 'matched_threshold': 0.5, 'unmatched_threshold': 0.35}]
+2025-12-17 16:15:29,754   INFO  
 cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG = edict()
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.NAME: AxisAlignedTargetAssigner
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.POS_FRACTION: -1.0
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.SAMPLE_SIZE: 512
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.NORM_BY_NUM_EXAMPLES: False
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.MATCH_HEIGHT: False
-2025-12-16 16:18:54,984   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.BOX_CODER: ResidualCoder
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.NAME: AxisAlignedTargetAssigner
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.POS_FRACTION: -1.0
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.SAMPLE_SIZE: 512
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.NORM_BY_NUM_EXAMPLES: False
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.MATCH_HEIGHT: False
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.TARGET_ASSIGNER_CONFIG.BOX_CODER: ResidualCoder
+2025-12-17 16:15:29,754   INFO  
 cfg.MODEL.DENSE_HEAD.LOSS_CONFIG = edict()
-2025-12-16 16:18:54,984   INFO  
+2025-12-17 16:15:29,754   INFO  
 cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS = edict()
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.cls_weight: 1.0
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.loc_weight: 2.0
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.dir_weight: 0.2
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.code_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-2025-12-16 16:18:54,985   INFO  
+2025-12-17 16:15:29,754   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.cls_weight: 1.0
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.loc_weight: 2.0
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.dir_weight: 0.2
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.DENSE_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.code_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+2025-12-17 16:15:29,755   INFO  
+cfg.MODEL.ROI_HEAD = edict()
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.NAME: TEDMHead
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.CLASS_AGNOSTIC: True
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.ROT_NUM: 1
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.SHARED_FC: [256, 256]
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.CLS_FC: [256, 256]
+2025-12-17 16:15:29,755   INFO  cfg.MODEL.ROI_HEAD.REG_FC: [256, 256]
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.DP_RATIO: 0.01
+2025-12-17 16:15:29,756   INFO  
+cfg.MODEL.ROI_HEAD.NMS_CONFIG = edict()
+2025-12-17 16:15:29,756   INFO  
+cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN = edict()
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN.NMS_TYPE: nms_gpu
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN.MULTI_CLASSES_NMS: False
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN.NMS_PRE_MAXSIZE: 4000
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN.NMS_POST_MAXSIZE: 512
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TRAIN.NMS_THRESH: 0.8
+2025-12-17 16:15:29,756   INFO  
+cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST = edict()
+2025-12-17 16:15:29,756   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.NMS_TYPE: nms_gpu
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.MULTI_CLASSES_NMS: False
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.USE_FAST_NMS: True
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.SCORE_THRESH: 0.0
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.NMS_PRE_MAXSIZE: 2000
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.NMS_POST_MAXSIZE: 50
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.NMS_CONFIG.TEST.NMS_THRESH: 0.75
+2025-12-17 16:15:29,757   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL = edict()
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.FEATURES_SOURCE: ['x_conv3', 'x_conv4']
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.PRE_MLP: True
+2025-12-17 16:15:29,757   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.GRID_SIZE: 6
+2025-12-17 16:15:29,758   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS = edict()
+2025-12-17 16:15:29,758   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3 = edict()
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3.MLPS: [[32, 32], [32, 32]]
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3.QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3.POOL_RADIUS: [0.4, 0.8]
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3.NSAMPLE: [16, 16]
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv3.POOL_METHOD: max_pool
+2025-12-17 16:15:29,758   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4 = edict()
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4.MLPS: [[32, 32], [32, 32]]
+2025-12-17 16:15:29,758   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4.QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4.POOL_RADIUS: [0.8, 1.6]
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4.NSAMPLE: [16, 16]
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL.POOL_LAYERS.x_conv4.POOL_METHOD: max_pool
+2025-12-17 16:15:29,759   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM = edict()
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.FEATURES_SOURCE: ['x_conv3', 'x_conv4']
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.PRE_MLP: True
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.GRID_SIZE: 4
+2025-12-17 16:15:29,759   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS = edict()
+2025-12-17 16:15:29,759   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3 = edict()
+2025-12-17 16:15:29,759   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3.MLPS: [[32, 32], [32, 32]]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3.QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3.POOL_RADIUS: [0.4, 0.8]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3.NSAMPLE: [16, 16]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv3.POOL_METHOD: max_pool
+2025-12-17 16:15:29,760   INFO  
+cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4 = edict()
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4.MLPS: [[32, 32], [32, 32]]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4.QUERY_RANGES: [[2, 2, 2], [4, 4, 4]]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4.POOL_RADIUS: [0.8, 1.6]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4.NSAMPLE: [16, 16]
+2025-12-17 16:15:29,760   INFO  cfg.MODEL.ROI_HEAD.ROI_GRID_POOL_MM.POOL_LAYERS.x_conv4.POOL_METHOD: max_pool
+2025-12-17 16:15:29,761   INFO  
+cfg.MODEL.ROI_HEAD.TARGET_CONFIG = edict()
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.BOX_CODER: ResidualCoder
+2025-12-17 16:15:29,761   INFO  
+cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0 = edict()
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.ROI_PER_IMAGE: 160
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.FG_RATIO: 0.5
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.SAMPLE_ROI_BY_EACH_CLASS: True
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.CLS_SCORE_TYPE: roi_iou_x
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.CLS_FG_THRESH: [0.75, 0.6, 0.6]
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.CLS_BG_THRESH: [0.25, 0.2, 0.2]
+2025-12-17 16:15:29,761   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.CLS_BG_THRESH_LO: 0.1
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.HARD_BG_RATIO: 0.8
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.REG_FG_THRESH: [0.55, 0.45, 0.45]
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.ENABLE_HARD_SAMPLING: True
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.HARD_SAMPLING_THRESH: [0.5, 0.4, 0.4]
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.TARGET_CONFIG.STAGE0.HARD_SAMPLING_RATIO: [0.5, 0.5, 0.5]
+2025-12-17 16:15:29,762   INFO  
+cfg.MODEL.ROI_HEAD.LOSS_CONFIG = edict()
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.CLS_LOSS: BinaryCrossEntropy
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.REG_LOSS: smooth-l1
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.CORNER_LOSS_REGULARIZATION: True
+2025-12-17 16:15:29,762   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.GRID_3D_IOU_LOSS: False
+2025-12-17 16:15:29,763   INFO  
+cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS = edict()
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.rcnn_cls_weight: 1.0
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.rcnn_reg_weight: 1.0
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.rcnn_corner_weight: 1.0
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.rcnn_iou3d_weight: 1.0
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.ROI_HEAD.LOSS_CONFIG.LOSS_WEIGHTS.code_weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+2025-12-17 16:15:29,763   INFO  
 cfg.MODEL.POST_PROCESSING = edict()
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.SCORE_THRESH: 0.1
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.OUTPUT_RAW_SCORE: False
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.EVAL_METRIC: kitti
-2025-12-16 16:18:54,985   INFO  
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.POST_PROCESSING.SCORE_THRESH: 0.3
+2025-12-17 16:15:29,763   INFO  cfg.MODEL.POST_PROCESSING.OUTPUT_RAW_SCORE: False
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.EVAL_METRIC: kitti
+2025-12-17 16:15:29,764   INFO  
 cfg.MODEL.POST_PROCESSING.NMS_CONFIG = edict()
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.MULTI_CLASSES_NMS: False
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_TYPE: nms_gpu
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_THRESH: 0.1
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_PRE_MAXSIZE: 4096
-2025-12-16 16:18:54,985   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_POST_MAXSIZE: 500
-2025-12-16 16:18:54,985   INFO  
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.MULTI_CLASSES_NMS: False
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_TYPE: nms_gpu
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_THRESH: 0.1
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_PRE_MAXSIZE: 4096
+2025-12-17 16:15:29,764   INFO  cfg.MODEL.POST_PROCESSING.NMS_CONFIG.NMS_POST_MAXSIZE: 500
+2025-12-17 16:15:29,764   INFO  
 cfg.OPTIMIZATION = edict()
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.BATCH_SIZE_PER_GPU: 2
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.NUM_EPOCHS: 50
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.OPTIMIZER: adam_onecycle
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.LR: 0.01
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.WEIGHT_DECAY: 0.01
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.MOMENTUM: 0.9
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.MOMS: [0.95, 0.85]
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.PCT_START: 0.4
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.DIV_FACTOR: 10
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.DECAY_STEP_LIST: [35, 45]
-2025-12-16 16:18:54,985   INFO  cfg.OPTIMIZATION.LR_DECAY: 0.1
-2025-12-16 16:18:54,986   INFO  cfg.OPTIMIZATION.LR_CLIP: 1e-07
-2025-12-16 16:18:54,986   INFO  cfg.OPTIMIZATION.LR_WARMUP: False
-2025-12-16 16:18:54,986   INFO  cfg.OPTIMIZATION.WARMUP_EPOCH: 1
-2025-12-16 16:18:54,986   INFO  cfg.OPTIMIZATION.GRAD_NORM_CLIP: 10
-2025-12-16 16:18:54,986   INFO  cfg.TAG: VirConv-L-One_Stage
-2025-12-16 16:18:54,986   INFO  cfg.EXP_GROUP_PATH: models/kitti
-2025-12-16 16:18:54,987   INFO  Loading KITTI dataset
-2025-12-16 16:18:55,163   INFO  Total samples for KITTI dataset: 3769
-2025-12-16 16:18:59,830   INFO  ==> Loading parameters from checkpoint ../output/models/kitti/VirConv-L-One_Stage/default/ckpt/checkpoint_epoch_30.pth to CPU
-2025-12-16 16:18:59,848   INFO  ==> Checkpoint trained from version: pcdet+0.3.0+75397bb+py57e9b1e
-2025-12-16 16:18:59,857   INFO  ==> Done (loaded 199/199)
-2025-12-16 16:18:59,862   INFO  *************** EPOCH 30 EVALUATION *****************
+2025-12-17 16:15:29,764   INFO  cfg.OPTIMIZATION.BATCH_SIZE_PER_GPU: 2
+2025-12-17 16:15:29,764   INFO  cfg.OPTIMIZATION.NUM_EPOCHS: 50
+2025-12-17 16:15:29,764   INFO  cfg.OPTIMIZATION.OPTIMIZER: adam_onecycle
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.LR: 0.01
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.WEIGHT_DECAY: 0.01
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.MOMENTUM: 0.9
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.MOMS: [0.95, 0.85]
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.PCT_START: 0.4
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.DIV_FACTOR: 10
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.DECAY_STEP_LIST: [35, 45]
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.LR_DECAY: 0.1
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.LR_CLIP: 1e-07
+2025-12-17 16:15:29,765   INFO  cfg.OPTIMIZATION.LR_WARMUP: False
+2025-12-17 16:15:29,766   INFO  cfg.OPTIMIZATION.WARMUP_EPOCH: 1
+2025-12-17 16:15:29,766   INFO  cfg.OPTIMIZATION.GRAD_NORM_CLIP: 10
+2025-12-17 16:15:29,766   INFO  cfg.TAG: VirConv-L
+2025-12-17 16:15:29,766   INFO  cfg.EXP_GROUP_PATH: models/kitti
+2025-12-17 16:15:29,768   INFO  Loading KITTI dataset
+2025-12-17 16:15:29,988   INFO  Total samples for KITTI dataset: 3769
+2025-12-17 16:15:34,664   INFO  ==> Loading parameters from checkpoint ../output/models/kitti/VirConv-L/default/ckpt/checkpoint_epoch_31.pth to CPU
+2025-12-17 16:15:34,784   INFO  ==> Checkpoint trained from version: pcdet+0.3.0+75397bb+py863d63c
+2025-12-17 16:15:34,824   INFO  ==> Done (loaded 467/467)
+2025-12-17 16:15:34,848   INFO  *************** EPOCH 31 EVALUATION *****************
 
 
 
@@ -194,87 +293,95 @@ cfg.OPTIMIZATION = edict()
 
 
 
-eval: 100%|██████████| 236/236 [01:12<00:00,  3.27it/s, recall_0.3=(0, 8200) / 8554]
-2025-12-16 16:20:17,093   INFO  *************** Performance of EPOCH 30 *****************
-2025-12-16 16:20:17,094   INFO  Generate label finished(sec_per_example: 0.0205 second).
-2025-12-16 16:20:17,094   INFO  recall_roi_0.3: 0.000000
-2025-12-16 16:20:17,094   INFO  recall_rcnn_0.3: 0.958393
-2025-12-16 16:20:17,094   INFO  recall_roi_0.5: 0.000000
-2025-12-16 16:20:17,094   INFO  recall_rcnn_0.5: 0.920740
-2025-12-16 16:20:17,094   INFO  recall_roi_0.7: 0.000000
-2025-12-16 16:20:17,094   INFO  recall_rcnn_0.7: 0.742335
-2025-12-16 16:20:17,095   INFO  Average predicted number of objects(3769 samples): 25.988
-2025-12-16 16:20:47,272   INFO  Car AP@0.70, 0.70, 0.70:
-bbox AP:90.6346, 89.3453, 88.2062
-bev  AP:90.0215, 87.1917, 82.1306
-3d   AP:84.8478, 74.3986, 69.4164
-aos  AP:90.20, 88.47, 87.17
+
+
+
+
+
+
+
+
+eval: 100%|█████████▉| 235/236 [01:12<00:00,  3.55it/s, recall_0.3=(7993, 8008) / 8554]eval: 100%|██████████| 236/236 [01:12<00:00,  4.35it/s, recall_0.3=(7993, 8008) / 8554]eval: 100%|██████████| 236/236 [01:12<00:00,  3.27it/s, recall_0.3=(7993, 8008) / 8554]
+2025-12-17 16:16:47,263   INFO  *************** Performance of EPOCH 31 *****************
+2025-12-17 16:16:47,263   INFO  Generate label finished(sec_per_example: 0.0192 second).
+2025-12-17 16:16:47,263   INFO  recall_roi_0.3: 0.935584
+2025-12-17 16:16:47,263   INFO  recall_rcnn_0.3: 0.936157
+2025-12-17 16:16:47,263   INFO  recall_roi_0.5: 0.895066
+2025-12-17 16:16:47,263   INFO  recall_rcnn_0.5: 0.901083
+2025-12-17 16:16:47,263   INFO  recall_roi_0.7: 0.672130
+2025-12-17 16:16:47,263   INFO  recall_rcnn_0.7: 0.720786
+2025-12-17 16:16:47,265   INFO  Average predicted number of objects(3769 samples): 8.977
+2025-12-17 16:17:15,925   INFO  Car AP@0.70, 0.70, 0.70:
+bbox AP:96.0473, 89.5816, 88.8749
+bev  AP:90.1744, 87.9696, 86.4549
+3d   AP:88.6970, 78.6299, 77.5001
+aos  AP:95.87, 89.24, 88.35
 Car AP_R40@0.70, 0.70, 0.70:
-bbox AP:96.3106, 93.4375, 90.3594
-bev  AP:95.4555, 88.6748, 84.3479
-3d   AP:85.9344, 75.1363, 70.0513
-aos  AP:95.81, 92.45, 89.24
+bbox AP:98.5033, 94.4884, 93.3123
+bev  AP:95.5952, 90.5552, 87.9225
+3d   AP:91.8793, 82.0428, 79.1648
+aos  AP:98.32, 94.07, 92.69
 Car AP@0.70, 0.50, 0.50:
-bbox AP:90.6346, 89.3453, 88.2062
-bev  AP:90.6998, 92.2342, 89.0120
-3d   AP:90.6964, 89.6289, 88.7954
-aos  AP:90.20, 88.47, 87.17
+bbox AP:96.0473, 89.5816, 88.8749
+bev  AP:97.3704, 94.1613, 89.0099
+3d   AP:97.3095, 94.0504, 88.9151
+aos  AP:95.87, 89.24, 88.35
 Car AP_R40@0.70, 0.50, 0.50:
-bbox AP:96.3106, 93.4375, 90.3594
-bev  AP:96.4659, 95.5264, 92.9526
-3d   AP:96.4240, 93.9641, 92.4384
-aos  AP:95.81, 92.45, 89.24
+bbox AP:98.5033, 94.4884, 93.3123
+bev  AP:98.8666, 96.3506, 93.7657
+3d   AP:98.8377, 96.0692, 93.5715
+aos  AP:98.32, 94.07, 92.69
 Pedestrian AP@0.50, 0.50, 0.50:
-bbox AP:53.9288, 49.9981, 46.1840
-bev  AP:46.1870, 41.6581, 38.7770
-3d   AP:38.7560, 34.8870, 32.3636
-aos  AP:35.46, 33.05, 30.43
+bbox AP:66.4166, 58.5048, 54.5577
+bev  AP:63.2591, 55.0722, 49.7582
+3d   AP:60.9430, 53.5226, 48.4294
+aos  AP:56.46, 48.94, 45.16
 Pedestrian AP_R40@0.50, 0.50, 0.50:
-bbox AP:53.3079, 48.3871, 44.5685
-bev  AP:43.9591, 39.1633, 35.8322
-3d   AP:35.6228, 31.5239, 28.4722
-aos  AP:31.97, 28.73, 26.17
+bbox AP:66.6752, 58.1043, 53.0947
+bev  AP:63.0051, 54.1593, 48.9385
+3d   AP:61.1871, 52.2494, 46.9084
+aos  AP:55.35, 47.34, 42.73
 Pedestrian AP@0.50, 0.25, 0.25:
-bbox AP:53.9288, 49.9981, 46.1840
-bev  AP:60.9033, 56.6421, 52.7582
-3d   AP:60.6982, 55.9550, 52.4132
-aos  AP:35.46, 33.05, 30.43
+bbox AP:66.4166, 58.5048, 54.5577
+bev  AP:69.7640, 63.1427, 57.9816
+3d   AP:69.5730, 62.9538, 57.6010
+aos  AP:56.46, 48.94, 45.16
 Pedestrian AP_R40@0.50, 0.25, 0.25:
-bbox AP:53.3079, 48.3871, 44.5685
-bev  AP:60.7572, 55.6891, 51.8464
-3d   AP:60.5761, 55.1883, 51.4862
-aos  AP:31.97, 28.73, 26.17
+bbox AP:66.6752, 58.1043, 53.0947
+bev  AP:71.2023, 62.7316, 58.3737
+3d   AP:71.0680, 62.4854, 57.4849
+aos  AP:55.35, 47.34, 42.73
 Cyclist AP@0.50, 0.50, 0.50:
-bbox AP:71.1505, 57.4595, 54.2497
-bev  AP:67.2958, 48.9730, 45.8222
-3d   AP:64.6818, 46.0703, 43.0447
-aos  AP:70.47, 55.26, 52.16
+bbox AP:85.7802, 68.5002, 65.3137
+bev  AP:80.3418, 60.7789, 57.5037
+3d   AP:76.2280, 57.4661, 54.3933
+aos  AP:85.62, 67.03, 63.85
 Cyclist AP_R40@0.50, 0.50, 0.50:
-bbox AP:71.6812, 56.9424, 53.6359
-bev  AP:67.4415, 47.6691, 44.2935
-3d   AP:65.4570, 44.4515, 41.2148
-aos  AP:70.88, 54.57, 51.31
+bbox AP:87.7723, 69.2528, 64.8652
+bev  AP:82.0931, 61.2371, 56.8327
+3d   AP:77.3183, 57.4680, 53.2934
+aos  AP:87.58, 67.61, 63.27
 Cyclist AP@0.50, 0.25, 0.25:
-bbox AP:71.1505, 57.4595, 54.2497
-bev  AP:70.9733, 55.6422, 52.3023
-3d   AP:70.9724, 55.6009, 52.2318
-aos  AP:70.47, 55.26, 52.16
+bbox AP:85.7802, 68.5002, 65.3137
+bev  AP:85.1090, 66.8173, 63.5424
+3d   AP:85.0940, 66.8092, 63.4969
+aos  AP:85.62, 67.03, 63.85
 Cyclist AP_R40@0.50, 0.25, 0.25:
-bbox AP:71.6812, 56.9424, 53.6359
-bev  AP:71.4860, 55.0218, 51.5088
-3d   AP:71.4852, 54.9750, 51.4430
-aos  AP:70.88, 54.57, 51.31
+bbox AP:87.7723, 69.2528, 64.8652
+bev  AP:87.4062, 67.4756, 63.1106
+3d   AP:87.3993, 67.4673, 62.9748
+aos  AP:87.58, 67.61, 63.27
 
-2025-12-16 16:20:47,281   INFO  Result is save to /home/hznuojai/zhouyi/VirConv/output/models/kitti/VirConv-L-One_Stage/default/eval/epoch_30/val/default
-2025-12-16 16:20:47,281   INFO  ****************Evaluation done.*****************
+2025-12-17 16:17:15,933   INFO  Result is save to /home/hznuojai/zhouyi/VirConv/output/models/kitti/VirConv-L/default/eval/epoch_31/val/default
+2025-12-17 16:17:15,933   INFO  ****************Evaluation done.*****************
 INFO:torch.distributed.elastic.agent.server.api:[default] worker group successfully finished. Waiting 300 seconds for other agents to finish.
 INFO:torch.distributed.elastic.agent.server.api:Local worker group finished (SUCCEEDED). Waiting 300 seconds for other agents to finish
 /home/hznuojai/anaconda3/envs/RSV/lib/python3.8/site-packages/torch/distributed/elastic/utils/store.py:70: FutureWarning: This is an experimental API and will be changed in future.
   warnings.warn(
-INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.0006594657897949219 seconds
-{"name": "torchelastic.worker.status.SUCCEEDED", "source": "WORKER", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": 0, "group_rank": 0, "worker_id": "174687", "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 120, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\", \"local_rank\": [0], \"role_rank\": [0], \"role_world_size\": [2]}", "agent_restarts": 0}}
-{"name": "torchelastic.worker.status.SUCCEEDED", "source": "WORKER", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": 1, "group_rank": 0, "worker_id": "174688", "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 120, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\", \"local_rank\": [1], \"role_rank\": [1], \"role_world_size\": [2]}", "agent_restarts": 0}}
-{"name": "torchelastic.worker.status.SUCCEEDED", "source": "AGENT", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": null, "group_rank": 0, "worker_id": null, "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 120, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\"}", "agent_restarts": 0}}
+INFO:torch.distributed.elastic.agent.server.api:Done waiting for other agents. Elapsed: 0.0004334449768066406 seconds
+{"name": "torchelastic.worker.status.SUCCEEDED", "source": "WORKER", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": 0, "group_rank": 0, "worker_id": "1073649", "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 115, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\", \"local_rank\": [0], \"role_rank\": [0], \"role_world_size\": [2]}", "agent_restarts": 0}}
+{"name": "torchelastic.worker.status.SUCCEEDED", "source": "WORKER", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": 1, "group_rank": 0, "worker_id": "1073650", "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 115, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\", \"local_rank\": [1], \"role_rank\": [1], \"role_world_size\": [2]}", "agent_restarts": 0}}
+{"name": "torchelastic.worker.status.SUCCEEDED", "source": "AGENT", "timestamp": 0, "metadata": {"run_id": "none", "global_rank": null, "group_rank": 0, "worker_id": null, "role": "default", "hostname": "hznuojai-2288H-V6", "state": "SUCCEEDED", "total_run_time": 115, "rdzv_backend": "static", "raw_error": null, "metadata": "{\"group_world_size\": 1, \"entry_point\": \"python\"}", "agent_restarts": 0}}
 *****************************************
 Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
 *****************************************

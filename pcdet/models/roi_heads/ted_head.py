@@ -852,8 +852,9 @@ class TEDMHead(RoIHeadTemplate):
                 self.forward_ret_dict['targets_dict_pi' + rot_num_id] = targets_dict_pi
                 self.forward_ret_dict['targets_dict_p' + rot_num_id] = targets_dict_p
 
-            batch_dict['rois'] = batch_box_preds
-            batch_dict['roi_scores'] = batch_cls_preds.squeeze(-1)
+            # NOTE 下面这两行代码导致 rpn_recall 与 rcnn_recall 一直相等，怀疑是个bug，注释掉了
+            # batch_dict['rois'] = batch_box_preds
+            # batch_dict['roi_scores'] = batch_cls_preds.squeeze(-1)
 
         return torch.mean(torch.stack(all_preds), 0), torch.mean(torch.stack(all_scores), 0)
 
