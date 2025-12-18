@@ -10,7 +10,7 @@ import time
 import copy
 
 class RoIHeadTemplate(nn.Module):
-    def __init__(self, num_class, model_cfg):
+    def __init__(self, num_class, model_cfg, **kwargs):
         super().__init__()
         self.model_cfg = model_cfg
         self.num_class = num_class
@@ -24,7 +24,7 @@ class RoIHeadTemplate(nn.Module):
             else:
                 this_cfg = self.model_cfg.TARGET_CONFIG.get('STAGE'+str(i))
                 previous_cfg = this_cfg
-            proposal_target_layer = ProposalTargetLayer(roi_sampler_cfg=this_cfg)
+            proposal_target_layer = ProposalTargetLayer(roi_sampler_cfg=this_cfg, **kwargs)
             self.proposal_target_layers.append(proposal_target_layer)
 
 

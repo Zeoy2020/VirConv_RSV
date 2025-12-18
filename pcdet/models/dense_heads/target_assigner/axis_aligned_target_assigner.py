@@ -7,7 +7,8 @@ from ....utils import box_utils
 import time
 
 class AxisAlignedTargetAssigner(object):
-    def __init__(self, model_cfg, class_names, box_coder, grid_size, point_cloud_range, match_height=False,):
+    def __init__(self, model_cfg, class_names, box_coder, grid_size, point_cloud_range, match_height=False,
+                 use_uvw=False, box_adapter=None):
         super().__init__()
 
         anchor_generator_cfg = model_cfg.ANCHOR_GENERATOR_CONFIG
@@ -34,6 +35,11 @@ class AxisAlignedTargetAssigner(object):
             self.unmatched_thresholds[config['class_name']] = config['unmatched_threshold']
          
         self.use_multihead = model_cfg.get('USE_MULTIHEAD', False)
+
+        # xyz/uvw switch & optional adapter
+        self.use_uvw = bool(use_uvw)
+        self.box_adapter = box_adapter  # can be None if not used
+
         self.seperate_multihead = model_cfg.get('SEPERATE_MULTIHEAD', False)
         if self.seperate_multihead:
             rpn_head_cfgs = model_cfg.RPN_HEAD_CFGS
@@ -71,6 +77,9 @@ class AxisAlignedTargetAssigner(object):
             target_list = []
 
             for anchor_class_name, anchors in zip(self.anchor_class_names, all_anchors):
+                if self.use_uvw and self.box_adapter is not None:
+                    anchors = self.box_adapter.inv_warp_boxes(anchors)
+
                 if cur_gt_classes.shape[0] > 1:
                     mask = torch.from_numpy(self.class_names[cur_gt_classes.cpu() - 1] == anchor_class_name)
                 else:
@@ -223,6 +232,9 @@ class AxisAlignedTargetAssigner(object):
         if len(gt_boxes) > 0 and anchors.shape[0] > 0:
             fg_gt_boxes = gt_boxes[anchor_to_gt_argmax[fg_inds], :]
             fg_anchors = anchors[fg_inds, :]
+            if self.use_uvw and self.box_adapter is not None:
+                fg_gt_boxes = self.box_adapter.warp_boxes(fg_gt_boxes)
+                fg_anchors = self.box_adapter.warp_boxes(fg_anchors)
             bbox_targets[fg_inds, :] = self.box_coder.encode_torch(fg_gt_boxes, fg_anchors)
 
         reg_weights = anchors.new_zeros((num_anchors,))

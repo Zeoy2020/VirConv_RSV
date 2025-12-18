@@ -4,6 +4,9 @@ import numpy as np
 from skimage import transform
 
 from ...utils import box_utils, common_utils
+from .processor_utils import (
+    RadialScaleConfig, RadialScalingVoxelization
+)
 
 tv = None
 try:
@@ -66,6 +69,7 @@ class DataProcessor(object):
         self.num_point_features = num_point_features
         self.mode = 'train' if training else 'test'
         self.grid_size = self.voxel_size = None
+        self.uvw_range = self.uvw_grid_size = None
         self.data_processor_queue = []
 
         self.voxel_generator = None
@@ -186,6 +190,94 @@ class DataProcessor(object):
 
         return data_dict
 
+    def transform_points_to_radial_voxels(self, data_dict=None, config=None):
+        """
+        Convert world points (x,y,z) to Radial-Scaled Cartesian warped coordinates (u,v,w),
+        then voxelize with spconv. Supports optional test-time double-flip.
+        Also removes uvw from voxel features if upstream set use_lead_xyz=False.
+        """
+        r_far, s_max, beta = config.R_FAR, config.S_MAX, config.BETA
+        cfg = RadialScaleConfig(r_far=r_far, s_max=s_max, beta=beta)
+        scaler = RadialScalingVoxelization(cfg)
+
+        if data_dict is None:
+            uvw_range = scaler.uvw_bounds_from_xy_range(self.point_cloud_range)
+            uvw_grid_size = ((uvw_range[3:6] - uvw_range[0:3]) / np.array(config.VOXEL_SIZE))
+            self.uvw_range = uvw_range
+            self.uvw_grid_size = np.round(uvw_grid_size).astype(np.int64)
+
+            grid_size = (self.point_cloud_range[3:6] - self.point_cloud_range[0:3]) / np.array(config.VOXEL_SIZE)
+            self.grid_size = np.round(grid_size).astype(np.int64)
+
+            self.voxel_size = config.VOXEL_SIZE
+            # just bind the config, we will create the VoxelGeneratorWrapper later,
+            # to avoid pickling issues in multiprocess spawn
+            return partial(self.transform_points_to_radial_voxels, config=config)
+
+        if self.voxel_generator is None:
+            uvw_range = scaler.uvw_bounds_from_xy_range(self.point_cloud_range)
+            self.uvw_range = np.array(uvw_range).astype(np.float32)
+            self.voxel_generator = VoxelGeneratorWrapper(
+                vsize_xyz=config.VOXEL_SIZE,
+                coors_range_xyz=self.uvw_range,
+                num_point_features=self.num_point_features,
+                max_num_points_per_voxel=config.MAX_POINTS_PER_VOXEL,
+                max_num_voxels=config.MAX_NUMBER_OF_VOXELS[self.mode],
+            )
+
+        for rot_num_id in range(self.rot_num):
+            if rot_num_id == 0:
+                rot_num_id_str = ''
+            else:
+                rot_num_id_str = str(rot_num_id)
+            points = data_dict['points'+rot_num_id_str]
+            if config.get('LIDAR_FIRST', False):
+                points_l = points[points[:,-1]==2]
+                points_m = points[points[:,-1]==1]
+                assert(points_l.shape[0] + points_m.shape[0] == points.shape[0], "Point labels other than LIDAR and MM found.")
+                points = np.concatenate([points_l, points_m])
+            
+            uvw = scaler.warp_points(points[:, 0:3])
+            pts_feats = points[:, 3:]
+            uvw_points = np.concatenate([uvw, pts_feats], axis=1)
+
+            voxel_output = self.voxel_generator.generate(uvw_points)
+            if isinstance(voxel_output, dict):
+                voxels, coordinates, num_points = \
+                    voxel_output['voxels'], voxel_output['coordinates'], voxel_output['num_points_per_voxel']
+            else:
+                voxels, coordinates, num_points = voxel_output
+
+            if not data_dict['use_lead_xyz']:
+                voxels = voxels[..., 3:]  # remove xyz in voxels(N, 3)
+
+            data_dict['voxels'+rot_num_id_str] = voxels
+            data_dict['voxel_coords'+rot_num_id_str] = coordinates
+            data_dict['voxel_num_points'+rot_num_id_str] = num_points
+
+            if 'mm' in data_dict:
+                points = data_dict['points_mm'+rot_num_id_str]
+                
+                uvw = scaler.warp_points(points[:, 0:3])
+                pts_feats = points[:, 3:]
+                uvw_points = np.concatenate([uvw, pts_feats], axis=1)
+
+                voxel_output = self.voxel_generator.generate(uvw_points)
+                if isinstance(voxel_output, dict):
+                    voxels, coordinates, num_points = \
+                        voxel_output['voxels'], voxel_output['coordinates'], voxel_output['num_points_per_voxel']
+                else:
+                    voxels, coordinates, num_points = voxel_output
+
+                if not data_dict['use_lead_xyz']:
+                    voxels = voxels[..., 3:]  # remove xyz in voxels(N, 3)
+
+                data_dict['voxels_mm'+rot_num_id_str] = voxels
+                data_dict['voxel_coords_mm'+rot_num_id_str] = coordinates
+                data_dict['voxel_num_points_mm'+rot_num_id_str] = num_points
+
+        return data_dict
+    
     def sample_points(self, data_dict=None, config=None):
         if data_dict is None:
             return partial(self.sample_points, config=config)

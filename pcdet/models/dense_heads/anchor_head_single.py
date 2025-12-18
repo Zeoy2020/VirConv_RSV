@@ -33,12 +33,17 @@ class AnchorHeadSingle(AnchorHeadTemplate):
                  predict_boxes_when_training=True, **kwargs):
         super().__init__(
             model_cfg=model_cfg, num_class=num_class, class_names=class_names, grid_size=grid_size, point_cloud_range=point_cloud_range,
-            predict_boxes_when_training=predict_boxes_when_training
+            predict_boxes_when_training=predict_boxes_when_training,
+            **kwargs
         )
         self.grid_size = grid_size  # [1408 1600   40]
         self.range = point_cloud_range
-
-        self.voxel_size = (point_cloud_range[3] - point_cloud_range[0]) / grid_size[0]
+        self.use_uvw_coords = kwargs.get('use_uvw_coords', False)
+        if self.use_uvw_coords:
+            self.voxel_size = kwargs.get('voxel_size', None)
+            assert(self.voxel_size is not None, 'voxel_size must be provided when use_uvw_coords is True')
+        else:
+            self.voxel_size = (point_cloud_range[3] - point_cloud_range[0]) / grid_size[0]
 
 
         self.num_anchors_per_location = sum(self.num_anchors_per_location)

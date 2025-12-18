@@ -9,6 +9,9 @@ from ..backbones_2d import map_to_bev
 from ..backbones_3d import pfe, vfe
 from ..model_utils import model_nms_utils
 
+from pcdet.models.box_adapters.rsv_box_adapter import RSVBoxAdapter
+from pcdet.models.backbones_3d.modules.rsv_invwarp_torch import RadialScaleTorch
+
 class Detector3DTemplate(nn.Module):
     def __init__(self, model_cfg, num_class, dataset):
         super().__init__()
@@ -17,6 +20,19 @@ class Detector3DTemplate(nn.Module):
         self.dataset = dataset
         self.class_names = dataset.class_names
         self.register_buffer('global_step', torch.LongTensor(1).zero_())
+
+        self.use_uvw_coords = model_cfg.get('USE_UVW_COORDS', False)
+        self.rsv_scaler = None
+        self.box_adapter = None
+        if self.use_uvw_coords:
+            # you can make these come from cfg.MODEL.RSV or reuse existing one
+            rsv_cfg = getattr(self.model_cfg, 'RSV', {})
+            self.rsv_scaler = RadialScaleTorch(
+                r_far=rsv_cfg.get('R_FAR', 50.0),
+                s_max=rsv_cfg.get('S_MAX', 3.0),
+                beta=rsv_cfg.get('BETA', 1.5),
+            )
+            self.box_adapter = RSVBoxAdapter(self.rsv_scaler)
 
         self.module_topology = [
             'vfe', 'backbone_3d', 'map_to_bev_module',
@@ -41,6 +57,11 @@ class Detector3DTemplate(nn.Module):
             'point_cloud_range': self.dataset.point_cloud_range,
             'voxel_size': self.dataset.voxel_size
         }
+        if self.use_uvw_coords:
+            model_info_dict.update({
+                'uvw_grid_size': self.dataset.uvw_grid_size,
+                'uvw_range': self.dataset.uvw_range
+            })
         for module_name in self.module_topology:
             module, model_info_dict = getattr(self, 'build_%s' % module_name)(
                 model_info_dict=model_info_dict
@@ -55,7 +76,7 @@ class Detector3DTemplate(nn.Module):
         vfe_module = vfe.__all__[self.model_cfg.VFE.NAME](
             model_cfg=self.model_cfg.VFE,
             num_point_features=model_info_dict['num_rawpoint_features'],
-            point_cloud_range=model_info_dict['point_cloud_range'],
+            point_cloud_range=model_info_dict['uvw_range'] if self.use_uvw_coords else model_info_dict['point_cloud_range'],
             voxel_size=model_info_dict['voxel_size'],
         )
         model_info_dict['num_point_features'] = vfe_module.get_output_feature_dim()
@@ -69,9 +90,10 @@ class Detector3DTemplate(nn.Module):
         backbone_3d_module = backbones_3d.__all__[self.model_cfg.BACKBONE_3D.NAME](
             model_cfg=self.model_cfg.BACKBONE_3D,
             input_channels=model_info_dict['num_point_features'],
-            grid_size=model_info_dict['grid_size'],
+            grid_size=model_info_dict['uvw_grid_size'] if self.use_uvw_coords else model_info_dict['grid_size'],
             voxel_size=model_info_dict['voxel_size'],
-            point_cloud_range=model_info_dict['point_cloud_range']
+            point_cloud_range=model_info_dict['uvw_range'] if self.use_uvw_coords else model_info_dict['point_cloud_range'],
+            use_uvw_coords=self.use_uvw_coords,
         )
         model_info_dict['module_list'].append(backbone_3d_module)
         model_info_dict['num_point_features'] = backbone_3d_module.num_point_features
@@ -84,7 +106,7 @@ class Detector3DTemplate(nn.Module):
         map_to_bev_module = map_to_bev.__all__[self.model_cfg.MAP_TO_BEV.NAME](
             model_cfg=self.model_cfg.MAP_TO_BEV,
             voxel_size=model_info_dict['voxel_size'],
-            point_cloud_range=model_info_dict['point_cloud_range']
+            point_cloud_range=model_info_dict['uvw_range'] if self.use_uvw_coords else model_info_dict['point_cloud_range']
         )
         model_info_dict['module_list'].append(map_to_bev_module)
         model_info_dict['num_bev_features'] = map_to_bev_module.num_bev_features
@@ -132,10 +154,13 @@ class Detector3DTemplate(nn.Module):
             input_channels=model_info_dict['num_bev_features_post'],
             num_class=self.num_class if not self.model_cfg.DENSE_HEAD.CLASS_AGNOSTIC else 1,
             class_names=self.class_names,
-            grid_size=model_info_dict['grid_size'],
-            point_cloud_range=model_info_dict['point_cloud_range'],
+            grid_size=model_info_dict['uvw_grid_size'] if self.use_uvw_coords else model_info_dict['grid_size'],
+            point_cloud_range=model_info_dict['uvw_range'] if self.use_uvw_coords else model_info_dict['point_cloud_range'],
             predict_boxes_when_training=self.model_cfg.get('ROI_HEAD', False),
-            voxel_size = model_info_dict.get('voxel_size', False)
+            voxel_size = model_info_dict.get('voxel_size', False),
+            use_uvw_coords=self.use_uvw_coords,
+            rsv_scaler=self.rsv_scaler,
+            box_adapter=self.box_adapter
         )
         model_info_dict['module_list'].append(dense_head_module)
         return dense_head_module, model_info_dict
@@ -166,9 +191,12 @@ class Detector3DTemplate(nn.Module):
         point_head_module = roi_heads.__all__[self.model_cfg.ROI_HEAD.NAME](
             model_cfg=self.model_cfg.ROI_HEAD,
             input_channels=model_info_dict['num_point_features'],
-            point_cloud_range=model_info_dict['point_cloud_range'],
+            point_cloud_range=model_info_dict['uvw_range'] if self.use_uvw_coords else model_info_dict['point_cloud_range'],
             voxel_size=model_info_dict['voxel_size'],
             num_class=self.num_class if not self.model_cfg.ROI_HEAD.CLASS_AGNOSTIC else 1,
+            use_uvw_coords=self.use_uvw_coords,
+            rsv_scaler=self.rsv_scaler,
+            box_adapter=self.box_adapter
         )
 
         model_info_dict['module_list'].append(point_head_module)
@@ -176,6 +204,33 @@ class Detector3DTemplate(nn.Module):
 
     def forward(self, **kwargs):
         raise NotImplementedError
+    
+    def _get_uvw_flag_and_scaler(self):
+
+        use = False
+        scaler = None
+        box_adpter = None
+
+        candidates = [
+            getattr(self, 'roi_head', None),
+            getattr(self, 'dense_head', None),
+            getattr(self, 'backbone_3d', None),
+        ]
+
+        for mod in candidates:
+            if mod is None:
+                continue
+
+            if hasattr(mod, 'use_uvw_coords'):
+                use = use or bool(getattr(mod, 'use_uvw_coords'))
+
+            if scaler is None and hasattr(mod, 'rsv_scaler'):
+                scaler = getattr(mod, 'rsv_scaler')
+                
+            if hasattr(mod, 'box_adapter'):
+                box_adpter = mod.box_adapter
+
+        return (use and (scaler is not None)), scaler, box_adpter
 
     def post_processing(self, batch_dict):
         """
@@ -198,6 +253,9 @@ class Detector3DTemplate(nn.Module):
         batch_size = batch_dict['batch_size']
         recall_dict = {}
         pred_dicts = []
+
+        use_uvw_for_pred, rsv_scaler, box_adpter = self._get_uvw_flag_and_scaler()
+
         for index in range(batch_size):
             if batch_dict.get('batch_index', None) is not None:
                 assert batch_dict['batch_box_preds'].shape.__len__() == 2
@@ -280,11 +338,17 @@ class Detector3DTemplate(nn.Module):
                     final_labels = label_preds[selected]
                     final_boxes = box_preds[selected]
 
+            if use_uvw_for_pred:
+                final_boxes = box_adpter.inv_warp_boxes(final_boxes)
+                src_box_preds = box_adpter.inv_warp_boxes(src_box_preds)
+
             # final_boxes 是经过 nms 后的预测框，src_box_preds是 nms 前的预测框
             recall_dict = self.generate_recall_record(
                 box_preds=final_boxes if 'rois' not in batch_dict else src_box_preds,
                 recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
-                thresh_list=post_process_cfg.RECALL_THRESH_LIST
+                thresh_list=post_process_cfg.RECALL_THRESH_LIST,
+                use_uvw_for_pred=use_uvw_for_pred,
+                box_adpter=box_adpter
             )
 
             record_dict = {
@@ -304,11 +368,14 @@ class Detector3DTemplate(nn.Module):
         return pred_dicts, recall_dict
 
     @staticmethod
-    def generate_recall_record(box_preds, recall_dict, batch_index, data_dict=None, thresh_list=None):
+    def generate_recall_record(box_preds, recall_dict, batch_index, data_dict=None, thresh_list=None,
+                               use_uvw_for_pred=False, box_adpter=None):
         if 'gt_boxes' not in data_dict:
             return recall_dict
         
         rois = data_dict['rois'][batch_index] if 'rois' in data_dict else None
+        if use_uvw_for_pred:
+            rois = box_adpter.inv_warp_boxes(rois) if rois is not None else None
         gt_boxes = data_dict['gt_boxes'][batch_index]
 
         if recall_dict.__len__() == 0:

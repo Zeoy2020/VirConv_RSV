@@ -11,13 +11,18 @@ from ..model_utils.model_nms_utils import class_agnostic_nms
 import copy
 
 class AnchorHeadTemplate(nn.Module):
-    def __init__(self, model_cfg, num_class, class_names, grid_size, point_cloud_range, predict_boxes_when_training):
+    def __init__(self, model_cfg, num_class, class_names, grid_size, point_cloud_range, predict_boxes_when_training, **kwargs):
         super().__init__()
         self.model_cfg = model_cfg
         self.num_class = num_class
         self.class_names = class_names
         self.predict_boxes_when_training = predict_boxes_when_training
         self.use_multihead = self.model_cfg.get('USE_MULTIHEAD', False)
+
+        # global flag to toggle xyz/uvw pipeline
+        self.use_uvw_coords = kwargs.get('use_uvw_coords', False)
+        self.rsv_scaler = kwargs.get('rsv_scaler', None)
+        self.box_adapter = kwargs.get('box_adapter', None)
 
         anchor_target_cfg = self.model_cfg.TARGET_ASSIGNER_CONFIG
         self.box_coder = getattr(box_coder_utils, anchor_target_cfg.BOX_CODER)(
@@ -32,7 +37,9 @@ class AnchorHeadTemplate(nn.Module):
 
         anchors, self.num_anchors_per_location = self.generate_anchors(
             anchor_generator_cfg, grid_size=grid_size, point_cloud_range=point_cloud_range,
-            anchor_ndim=self.box_coder.code_size
+            anchor_ndim=self.box_coder.code_size,
+            use_uvw_coords=self.use_uvw_coords,
+            scaler=self.rsv_scaler
         )
         self.anchors_root = [x.cuda() for x in anchors]
 
@@ -42,12 +49,16 @@ class AnchorHeadTemplate(nn.Module):
         self.build_losses(self.model_cfg.LOSS_CONFIG)
 
     @staticmethod
-    def generate_anchors(anchor_generator_cfg, grid_size, point_cloud_range, anchor_ndim=7):
+    def generate_anchors(anchor_generator_cfg, grid_size, point_cloud_range, anchor_ndim=7, use_uvw_coords=False, scaler=None):
         anchor_generator = AnchorGenerator(
             anchor_range=point_cloud_range,
-            anchor_generator_config=anchor_generator_cfg
+            anchor_generator_config=anchor_generator_cfg,
+            scaler=scaler
         )
-        feature_map_size = [grid_size[:2] // config['feature_map_stride'] for config in anchor_generator_cfg]
+        if use_uvw_coords:
+            feature_map_size = [(grid_size[:2] + config['feature_map_stride'] - 1) // config['feature_map_stride'] for config in anchor_generator_cfg]
+        else:   
+            feature_map_size = [grid_size[:2] // config['feature_map_stride'] for config in anchor_generator_cfg]
         anchors_list, num_anchors_per_location_list = anchor_generator.generate_anchors(feature_map_size)
 
         if anchor_ndim != 7:
@@ -73,7 +84,9 @@ class AnchorHeadTemplate(nn.Module):
                 box_coder=self.box_coder,
                 grid_size=self.grid_size,
                 point_cloud_range=self.point_cloud_range,
-                match_height=anchor_target_cfg.MATCH_HEIGHT
+                match_height=anchor_target_cfg.MATCH_HEIGHT,
+                use_uvw=self.use_uvw_coords,
+                box_adapter=self.box_adapter
             )
         else:
             raise NotImplementedError

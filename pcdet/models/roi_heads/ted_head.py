@@ -158,7 +158,7 @@ def bilinear_interpolate_torch_gridsample(image, samples_x, samples_y):
 class TEDMHead(RoIHeadTemplate):
     def __init__(self, input_channels, model_cfg, point_cloud_range=None, voxel_size=None,  num_class=1,
                  **kwargs):
-        super().__init__(num_class=num_class,  model_cfg=model_cfg)
+        super().__init__(num_class=num_class,  model_cfg=model_cfg, **kwargs)
         self.model_cfg = model_cfg
         self.pool_cfg = model_cfg.ROI_GRID_POOL
         self.pool_cfg_mm = model_cfg.ROI_GRID_POOL_MM

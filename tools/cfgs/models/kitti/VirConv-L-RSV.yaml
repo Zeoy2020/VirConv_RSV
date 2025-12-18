@@ -42,11 +42,11 @@ DATA_CONFIG:
               DB_INFO_PATH:
                 - kitti_dbinfos_train_mm.pkl
               PREPARE: {
-                filter_by_min_points: ['Car:5'],
+                filter_by_min_points: ['Car:5', 'Pedestrian:5', 'Cyclist:5'],
                 filter_by_difficulty: [-1],
               }
 
-              SAMPLE_GROUPS: ['Car:10']
+              SAMPLE_GROUPS: ['Car:10', 'Pedestrian:10', 'Cyclist:10']
 
               MIN_SAMPLING_DIS: 0
               MAX_SAMPLING_DIS: 20
@@ -88,7 +88,11 @@ DATA_CONFIG:
         encoding_type: absolute_coordinates_encoding_mm,
         used_feature_list: ['x', 'y', 'z', 'intensity'],
         src_feature_list: ['x', 'y', 'z', 'intensity'],
-        num_features: 8
+        num_features: 11, # Originally there were 8, and 3 more features were added in the uvw space, respectively dist, log_dist, scale.
+        USE_UVW_COORDS: True,
+        R_FAR: 50.0,
+        S_MAX: 2.0,
+        BETA: 1.5
     }
 
     DATA_PROCESSOR:
@@ -101,10 +105,13 @@ DATA_CONFIG:
             'test': False
           }
 
-        - NAME: transform_points_to_voxels
+        - NAME: transform_points_to_radial_voxels
           VOXEL_SIZE: [0.05, 0.05, 0.05]
           LIDAR_FIRST: True
           MAX_POINTS_PER_VOXEL: 5
+          R_FAR: 50.0
+          S_MAX: 2.0
+          BETA: 1.5
           MAX_NUMBER_OF_VOXELS: {
             'train': 40000, # using 40000 voxels is enough after input discard
             'test': 40000   # The 40000 voxels include both LiDAR and virtual points
@@ -112,7 +119,12 @@ DATA_CONFIG:
 
 MODEL:
     NAME: VoxelRCNN
-
+    USE_UVW_COORDS: True
+    RSV:
+        R_FAR: 50.0
+        S_MAX: 2.0
+        BETA: 1.5
+        
     VFE:
         NAME: MeanVFE
         MODEL: 'max'
@@ -265,14 +277,14 @@ MODEL:
                 FG_RATIO: 0.5
                 SAMPLE_ROI_BY_EACH_CLASS: True
                 CLS_SCORE_TYPE: roi_iou_x
-                CLS_FG_THRESH: [0.75]
-                CLS_BG_THRESH: [0.25]
+                CLS_FG_THRESH: [0.75, 0.6, 0.6]  
+                CLS_BG_THRESH: [0.25, 0.2, 0.2]
                 CLS_BG_THRESH_LO: 0.1
                 HARD_BG_RATIO: 0.8
-                REG_FG_THRESH: [0.55]
+                REG_FG_THRESH: [0.55, 0.45, 0.45]
                 ENABLE_HARD_SAMPLING: True
-                HARD_SAMPLING_THRESH: [0.5]
-                HARD_SAMPLING_RATIO: [0.5]
+                HARD_SAMPLING_THRESH: [0.5, 0.4, 0.4]
+                HARD_SAMPLING_RATIO: [0.5, 0.5, 0.5]
 
         LOSS_CONFIG:
             CLS_LOSS: BinaryCrossEntropy
@@ -289,7 +301,7 @@ MODEL:
 
     POST_PROCESSING:
         RECALL_THRESH_LIST: [0.3, 0.5, 0.7]
-        SCORE_THRESH: 0.5
+        SCORE_THRESH: 0.3
         OUTPUT_RAW_SCORE: False
         EVAL_METRIC: kitti
         NMS_CONFIG:

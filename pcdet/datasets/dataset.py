@@ -60,6 +60,8 @@ class DatasetTemplate(torch_data.Dataset):
 
         self.grid_size = self.data_processor.grid_size
         self.voxel_size = self.data_processor.voxel_size
+        self.uvw_range = self.data_processor.uvw_range
+        self.uvw_grid_size = self.data_processor.uvw_grid_size
         self.total_epochs = 0
         self._merge_all_iters_to_one_epoch = False
 

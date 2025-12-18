@@ -577,6 +577,8 @@ class VirConvL8x(nn.Module):
                 'x_conv4': num_filters[3],
             })
             self.num_point_features = num_point_features
+
+        self.use_uvw_coords = kwargs.get('use_uvw_coords', False)
         # for child in self.children():
         #    for param in child.parameters():
         #        param.requires_grad = False
@@ -632,9 +634,13 @@ class VirConvL8x(nn.Module):
                 rot_num_id = str(i)
             newvoxel_features, newvoxel_coords = batch_dict['voxel_features' + rot_num_id], batch_dict[
                 'voxel_coords' + rot_num_id]
-
-            newvoxel_features[:, 4:7] = 0 # remove the useless RGB features
-            newvoxel_features[:, 7] * 100 # highlight the indicator value regarding LiDAR and RGB point
+            
+            if self.use_uvw_coords:
+                newvoxel_features[:, 4:7] = 0
+                newvoxel_features[:, 10] *= 100
+            else:
+                newvoxel_features[:, 4:7] = 0 # remove the useless RGB features
+                newvoxel_features[:, 7] *= 100 # highlight the indicator value regarding LiDAR and RGB point
 
             newinput_sp_tensor = spconv.SparseConvTensor(
                 features=newvoxel_features,

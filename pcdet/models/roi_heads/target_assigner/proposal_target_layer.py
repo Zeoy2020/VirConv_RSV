@@ -5,9 +5,11 @@ import torch.nn as nn
 from ....ops.iou3d_nms import iou3d_nms_utils
 
 class ProposalTargetLayer(nn.Module):
-    def __init__(self, roi_sampler_cfg):
+    def __init__(self, roi_sampler_cfg, **kwargs):
         super().__init__()
         self.roi_sampler_cfg = roi_sampler_cfg
+        self.use_uvw_coords = kwargs.get('use_uvw_coords', False)
+        self.box_adapter = kwargs.get('box_adapter', None)
 
     def limit(self,ang):
         ang = ang % (2 * np.pi)
@@ -228,6 +230,9 @@ class ProposalTargetLayer(nn.Module):
                 k -= 1
             cur_gt = cur_gt[:k + 1]
             cur_gt = cur_gt.new_zeros((1, cur_gt.shape[1])) if len(cur_gt) == 0 else cur_gt
+
+            if self.use_uvw_coords:
+                cur_gt = self.box_adapter.warp_boxes(cur_gt)
 
             if self.roi_sampler_cfg.get('SAMPLE_ROI_BY_EACH_CLASS', False):
                 max_overlaps, gt_assignment = self.get_max_iou_with_same_class(
