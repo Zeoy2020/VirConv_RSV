@@ -102,7 +102,16 @@ class BaseBEVBackbone(nn.Module):
                 ups.append(x)
 
         if len(ups) > 1:
-            x = torch.cat(ups, dim=1)
+            # --- force alignment of upsample outputs ---
+            min_h = min(feat.shape[2] for feat in ups)
+            min_w = min(feat.shape[3] for feat in ups)
+
+            aligned = []
+            for feat in ups:
+                aligned.append(feat[:, :, :min_h, :min_w])
+
+            x = torch.cat(aligned, dim=1)
+            # x = torch.cat(ups, dim=1)
         elif len(ups) == 1:
             x = ups[0]
 

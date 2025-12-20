@@ -40,8 +40,9 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         self.range = point_cloud_range
         self.use_uvw_coords = kwargs.get('use_uvw_coords', False)
         if self.use_uvw_coords:
-            self.voxel_size = kwargs.get('voxel_size', None)
-            assert(self.voxel_size is not None, 'voxel_size must be provided when use_uvw_coords is True')
+            VOXEL_SIZE = kwargs.get('voxel_size', None)
+            assert(isinstance(VOXEL_SIZE, list), 'voxel_size must be provided as a list when use_uvw_coords is True')
+            self.voxel_size = VOXEL_SIZE[0]
         else:
             self.voxel_size = (point_cloud_range[3] - point_cloud_range[0]) / grid_size[0]
 
