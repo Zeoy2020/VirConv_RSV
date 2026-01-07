@@ -353,5 +353,73 @@ def eval_one_epoch_dist(cfg, model, dataloader, epoch_id, logger, dist_test=Fals
     
     return ret_dict
 
+def cal_inference_time(cfg, model, dataloader, logger):
+    logger.info('*************** CALCULATING INFERENCE TIME *****************')
+    
+    model.eval()
+    
+    infer_time_meter = common_utils.AverageMeter()
+    
+    if cfg.LOCAL_RANK == 0:
+        progress_bar = tqdm.tqdm(total=len(dataloader), leave=True, desc='Inference Speed', dynamic_ncols=True)
+    
+    # warmup iterations
+    warmup_iter = 88
+    
+    for i, batch_dict in enumerate(dataloader):
+        batch_dict['infer_time'] = True
+        
+        load_data_to_gpu(batch_dict)
+
+        # ---------------- Warmup phase ----------------
+        if i < warmup_iter:
+            with torch.no_grad():
+                model(batch_dict)
+            
+            if cfg.LOCAL_RANK == 0:
+                progress_bar.set_postfix({'status': f'Warmup {i+1}/{warmup_iter}'})
+                progress_bar.update()
+            continue
+
+        # ---------------- Actual inference timing phase ----------------
+        
+        torch.cuda.synchronize()
+        start_time = time.time()
+
+        with torch.no_grad():
+            # PCDet 的 model() 在 eval 模式下通常包含了 NMS 等后处理
+            pred_dicts, ret_dict, _ = model(batch_dict)
+
+        torch.cuda.synchronize()
+        inference_time = time.time() - start_time
+
+        # Convert to milliseconds (ms)
+        infer_time_meter.update(inference_time * 1000)
+        
+        if cfg.LOCAL_RANK == 0:
+            disp_dict = {
+                    'latency': f'{infer_time_meter.val:.2f}ms ({infer_time_meter.avg:.2f}ms)',
+                    'status': 'Testing'
+                }
+            progress_bar.set_postfix(disp_dict)
+            progress_bar.update()
+
+    if cfg.LOCAL_RANK == 0:
+        progress_bar.close()
+
+    # Output final report
+    avg_latency = infer_time_meter.avg
+    fps = 1000.0 / avg_latency
+    
+    logger.info('**************** Inference Time Results *****************')
+    logger.info(f'cfg.tag       : {cfg.TAG}')
+    logger.info(f'Total Samples: {len(dataloader.dataset)}')
+    logger.info(f'Warmup Iters : {warmup_iter}')
+    logger.info(f'Avg Latency  : {avg_latency:.2f} ms / frame')
+    logger.info(f'FPS          : {fps:.2f} frame / s')
+    logger.info('*********************************************************')
+
+    return avg_latency, fps
+
 if __name__ == '__main__':
     pass

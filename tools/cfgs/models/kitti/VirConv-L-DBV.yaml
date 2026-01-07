@@ -88,11 +88,7 @@ DATA_CONFIG:
         encoding_type: absolute_coordinates_encoding_mm,
         used_feature_list: ['x', 'y', 'z', 'intensity'],
         src_feature_list: ['x', 'y', 'z', 'intensity'],
-        num_features: 11, # Originally there were 8, and 3 more features were added in the uvw space, respectively dist, log_dist, scale.
-        USE_UVW_COORDS: True,
-        R_FAR: 50.0,
-        S_MAX: 2.0,
-        BETA: 1.5
+        num_features: 8
     }
 
     DATA_PROCESSOR:
@@ -105,13 +101,10 @@ DATA_CONFIG:
             'test': False
           }
 
-        - NAME: transform_points_to_radial_voxels
-          VOXEL_SIZE: [0.05, 0.05, 0.05]
+        - NAME: transform_points_to_voxels
+          VOXEL_SIZE: [0.1, 0.1, 0.05]
           LIDAR_FIRST: True
           MAX_POINTS_PER_VOXEL: 5
-          R_FAR: 50.0
-          S_MAX: 2.0
-          BETA: 1.5
           MAX_NUMBER_OF_VOXELS: {
             'train': 40000, # using 40000 voxels is enough after input discard
             'test': 40000   # The 40000 voxels include both LiDAR and virtual points
@@ -119,12 +112,7 @@ DATA_CONFIG:
 
 MODEL:
     NAME: VoxelRCNN
-    USE_UVW_COORDS: True
-    RSV:
-        R_FAR: 50.0
-        S_MAX: 2.0
-        BETA: 1.5
-        
+
     VFE:
         NAME: MeanVFE
         MODEL: 'max'

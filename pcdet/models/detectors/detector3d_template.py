@@ -342,14 +342,17 @@ class Detector3DTemplate(nn.Module):
                 final_boxes = box_adpter.inv_warp_boxes(final_boxes)
                 src_box_preds = box_adpter.inv_warp_boxes(src_box_preds)
 
-            # final_boxes 是经过 nms 后的预测框，src_box_preds是 nms 前的预测框
-            recall_dict = self.generate_recall_record(
-                box_preds=final_boxes if 'rois' not in batch_dict else src_box_preds,
-                recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
-                thresh_list=post_process_cfg.RECALL_THRESH_LIST,
-                use_uvw_for_pred=use_uvw_for_pred,
-                box_adpter=box_adpter
-            )
+            if batch_dict.get('infer_time', False):
+                recall_dict = None
+            else:
+                # final_boxes 是经过 nms 后的预测框，src_box_preds是 nms 前的预测框
+                recall_dict = self.generate_recall_record(
+                    box_preds=final_boxes if 'rois' not in batch_dict else src_box_preds,
+                    recall_dict=recall_dict, batch_index=index, data_dict=batch_dict,
+                    thresh_list=post_process_cfg.RECALL_THRESH_LIST,
+                    use_uvw_for_pred=use_uvw_for_pred,
+                    box_adpter=box_adpter
+                )
 
             record_dict = {
                 'pred_boxes': final_boxes,
