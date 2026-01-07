@@ -324,6 +324,9 @@ def eval_one_epoch_dist(cfg, model, dataloader, epoch_id, logger, dist_test=Fals
     ret_dict.update(result_dict)
 
     # -------- distance-binned evaluations (prediction-filtered) --------
+    if 'annos' not in dataset.kitti_infos[0]:
+        logger.info("No ground truth annotations found (Test Set). Skipping evaluation.")
+        return ret_dict
     # ground-truth annos
     gt_annos = [copy.deepcopy(info['annos']) for info in dataset.kitti_infos]
 
