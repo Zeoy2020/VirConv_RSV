@@ -2,10 +2,6 @@
 import torch
 import torch.nn as nn
 from ....utils.spconv_utils import spconv
-import math
-
-import torch
-import torch.nn as nn
 
 class RadialScaleTorch(nn.Module):
     """
@@ -16,17 +12,20 @@ class RadialScaleTorch(nn.Module):
     Inverse: fixed-point iteration to recover (x,y) from (u,v)
     """
 
-    def __init__(self, r_far=50.0, s_max=3.0, beta=1.5, eps=1e-6):
+    def __init__(self, r_far=50.0, s_max=2.0, beta=1.5, eps=1e-6):
         super().__init__()
         self.r_far = float(r_far)
         self.s_max = float(s_max)
         self.beta = float(beta)
         self.eps = float(eps)
         assert self.r_far > 0 and self.s_max >= 1.0
+        self.scale_delta = self.s_max - 1.0
+        self.beta_over_r_far = self.beta / max(self.r_far, 1e-6)
+        self.inv_s_max = 1.0 / max(self.s_max, 1.0)
 
     def s_of_r(self, r: torch.Tensor) -> torch.Tensor:
         """Exponential decay scale: s(r) = 1 + (s_max - 1) * exp(-beta * r / r_far)"""
-        return 1.0 + (self.s_max - 1.0) * torch.exp(-self.beta * r / max(self.r_far, 1e-6))
+        return 1.0 + self.scale_delta * torch.exp(-self.beta_over_r_far * r)
 
     @torch.no_grad()
     def warp_points(self, xyz: torch.Tensor) -> torch.Tensor:
@@ -40,36 +39,56 @@ class RadialScaleTorch(nn.Module):
         return torch.stack([u, v, w], dim=-1)
 
     @torch.no_grad()
-    def inv_warp_points(self, uvw: torch.Tensor, max_iters: int = 20, tol: float = 1e-6) -> torch.Tensor:
+    def inv_warp_points(self, uvw: torch.Tensor, max_iters: int = 6, tol: float = 1e-5) -> torch.Tensor:
         """
-        Inverse warp: (u,v,w) -> (x,y,w) using fixed-point iteration
-        Stable version similar to RSV's implementation.
+        Inverse warp: (u,v,w) -> (x,y,w) using a fixed-budget Newton solver.
+
+        Notes:
+          - Runs in float32 to avoid the heavy float64 path on GPU.
+          - Uses a better initial guess based on the lower radial bound r in [rho / s_max, rho].
+          - Uses a fixed iteration budget instead of a tensor-valued early-stop condition,
+            which avoids repeated host-device synchronization inside the loop.
+          - `tol` is kept for API compatibility with older callers.
         """
-        u, v, w = uvw[:, 0].double(), uvw[:, 1].double(), uvw[:, 2].float()
-        rho = torch.hypot(u, v)
-        zero_mask = rho == 0.0
+        del tol  # fixed-budget fast path; kept only for API compatibility
 
-        # initialize r with upper bound
-        r = rho / max(self.s_max, 1.0)
+        if uvw.numel() == 0:
+            return uvw.float()
 
-        for _ in range(max_iters):
-            s = 1.0 + (self.s_max - 1.0) * torch.exp(-self.beta * r / max(self.r_far, 1e-6))
-            f = s * r - rho
-            # derivative: s + r * s' = s - r * (s_max-1)*beta/r_far*exp(-beta*r/r_far)
-            s_prime = - (self.s_max - 1.0) * self.beta / max(self.r_far, 1e-6) * torch.exp(-self.beta * r / max(self.r_far, 1e-6))
-            fp = s + r * s_prime + self.eps
-            r_new = r - f / fp
-            r_new = torch.clamp(r_new, min=0.0)
-            if torch.all(torch.abs(r_new - r) < tol):
-                r = r_new
-                break
-            r = r_new
+        uvw = uvw.float()
+        u, v, w = uvw[:, 0], uvw[:, 1], uvw[:, 2]
+        rho = torch.sqrt(u * u + v * v)
 
-        x = torch.zeros_like(u, dtype=torch.float32)
-        y = torch.zeros_like(v, dtype=torch.float32)
+        x = torch.zeros_like(u)
+        y = torch.zeros_like(v)
+
         nonzero = rho > 0
-        x[nonzero] = (r[nonzero] / rho[nonzero] * u[nonzero]).float()
-        y[nonzero] = (r[nonzero] / rho[nonzero] * v[nonzero]).float()
+        if not torch.any(nonzero):
+            return torch.stack([x, y, w], dim=-1)
+
+        rho_nz = rho[nonzero]
+        u_nz = u[nonzero]
+        v_nz = v[nonzero]
+
+        # Since s(r) is monotonic and bounded, the true radius lies in [rho / s_max, rho].
+        r_min = rho_nz * self.inv_s_max
+        r_max = rho_nz
+
+        # A better initial radius reduces the number of Newton updates needed in practice.
+        init_scale = 1.0 + self.scale_delta * torch.exp(-self.beta_over_r_far * r_min)
+        r = torch.clamp(rho_nz / init_scale, min=r_min, max=r_max)
+
+        for _ in range(max(max_iters, 1)):
+            exp_term = torch.exp(-self.beta_over_r_far * r)
+            s = 1.0 + self.scale_delta * exp_term
+            # derivative of f(r) = s(r) * r - rho
+            fp = s - r * self.scale_delta * self.beta_over_r_far * exp_term
+            step = (s * r - rho_nz) / (fp + self.eps)
+            r = torch.clamp(r - step, min=r_min, max=r_max)
+
+        scale = r / torch.clamp(rho_nz, min=self.eps)
+        x[nonzero] = u_nz * scale
+        y[nonzero] = v_nz * scale
         return torch.stack([x, y, w], dim=-1)
 
 

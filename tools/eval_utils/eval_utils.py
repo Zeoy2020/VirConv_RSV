@@ -1,16 +1,256 @@
+import copy
+import json
+import os
 import pickle
 import time
 
 import numpy as np
 import torch
 import tqdm
-import time
-import copy
-import os
 
 from pcdet.models import load_data_to_gpu
 from pcdet.utils import common_utils
 from pcdet.datasets.kitti.kitti_object_eval_python import eval as kitti_eval
+
+
+VIRCONV_PROFILE_STAGES = (
+    'Pre-processing & RSV Warp',
+    'Voxelization',
+    'VFE',
+    '3D Backbone',
+    'BEV Compression & 2D Backbone',
+    'Dense Head',
+    'ROI Head',
+    'Post-processing & RSV Inverse',
+)
+
+
+def _batch_value_to_bool(value, default=True):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if torch.is_tensor(value):
+        if value.numel() == 0:
+            return default
+        return bool(value.reshape(-1)[0].item())
+    if isinstance(value, np.ndarray):
+        if value.size == 0:
+            return default
+        return bool(value.reshape(-1)[0].item())
+    if isinstance(value, (list, tuple)):
+        if len(value) == 0:
+            return default
+        return _batch_value_to_bool(value[0], default=default)
+    return bool(value)
+
+
+def _measure_cuda_stage(stage_fn, device):
+    start_event = torch.cuda.Event(enable_timing=True)
+    end_event = torch.cuda.Event(enable_timing=True)
+
+    torch.cuda.synchronize(device=device)
+    start_event.record()
+    stage_output = stage_fn()
+    end_event.record()
+    torch.cuda.synchronize(device=device)
+
+    return stage_output, start_event.elapsed_time(end_event)
+
+
+def _validate_nonempty_dataloader(cfg, dataloader):
+    if len(dataloader) == 0:
+        raise ValueError(
+            'The evaluation dataloader is empty. '
+            f'Check DATA_CONFIG.DATA_PATH={cfg.DATA_CONFIG.DATA_PATH} and ensure KITTI infos/split files exist.'
+        )
+
+
+class VirConvLatencyProfiler:
+    def __init__(self, cfg, model):
+        self.cfg = cfg
+        self.model = model.module if hasattr(model, 'module') else model
+        self.device = next(self.model.parameters()).device
+        self.use_uvw_coords = bool(getattr(self.model, 'use_uvw_coords', False))
+        self.voxel_cfg = self._get_voxel_processor_cfg()
+        self.voxelizers = {}
+
+    def _get_voxel_processor_cfg(self):
+        for processor_cfg in self.cfg.DATA_CONFIG.DATA_PROCESSOR:
+            if processor_cfg.NAME in ['transform_points_to_voxels', 'transform_points_to_radial_voxels']:
+                return processor_cfg
+        raise ValueError('VirConv latency profiling requires a voxelization processor in cfg.DATA_CONFIG.DATA_PROCESSOR')
+
+    def _get_coors_range(self):
+        coors_range = self.model.dataset.uvw_range if self.use_uvw_coords else self.model.dataset.point_cloud_range
+        if coors_range is None:
+            raise ValueError('Voxelization range is missing from the dataset')
+        if isinstance(coors_range, np.ndarray):
+            return coors_range.tolist()
+        return list(coors_range)
+
+    def _get_voxelizer(self, num_point_features):
+        from spconv.pytorch.utils import PointToVoxel
+
+        num_point_features = int(num_point_features)
+        voxelizer = self.voxelizers.get(num_point_features, None)
+        if voxelizer is None:
+            voxelizer = PointToVoxel(
+                vsize_xyz=[float(x) for x in self.voxel_cfg.VOXEL_SIZE],
+                coors_range_xyz=[float(x) for x in self._get_coors_range()],
+                num_point_features=num_point_features,
+                max_num_voxels=int(self.voxel_cfg.MAX_NUMBER_OF_VOXELS['test']),
+                max_num_points_per_voxel=int(self.voxel_cfg.MAX_POINTS_PER_VOXEL),
+                device=self.device
+            )
+            self.voxelizers[num_point_features] = voxelizer
+        return voxelizer
+
+    def _extract_single_batch_points(self, batch_dict, key='points'):
+        batch_size = int(batch_dict.get('batch_size', 0))
+        if batch_size != 1:
+            raise ValueError(f'VirConv latency profiling only supports batch_size=1, got {batch_size}')
+
+        points = batch_dict.get(key, None)
+        if not torch.is_tensor(points):
+            raise TypeError(f'batch_dict["{key}"] must be a torch.Tensor after load_data_to_gpu')
+        if points.ndim != 2 or points.shape[1] < 4:
+            raise ValueError(f'Unexpected {key} tensor shape: {tuple(points.shape)}')
+
+        batch_indices = points[:, 0]
+        if batch_indices.numel() > 0 and not torch.all(batch_indices == 0):
+            raise ValueError(f'VirConv latency profiling expects all {key} batch indices to be zero for batch_size=1')
+
+        point_features = points[:, 1:].contiguous()
+        if point_features.shape[0] == 0:
+            raise ValueError(f'Encountered an empty point cloud in "{key}" while profiling latency')
+        return point_features
+
+    def _reorder_lidar_first(self, point_features):
+        if not self.voxel_cfg.get('LIDAR_FIRST', False) or point_features.shape[1] == 0:
+            return point_features
+
+        point_type = point_features[:, -1]
+        points_lidar = point_features[point_type == 2]
+        points_virtual = point_features[point_type == 1]
+        if points_lidar.shape[0] + points_virtual.shape[0] != point_features.shape[0]:
+            return point_features
+        return torch.cat((points_lidar, points_virtual), dim=0).contiguous()
+
+    def _warp_point_features(self, point_features):
+        if not self.use_uvw_coords:
+            return point_features
+
+        xyz = point_features[:, :3]
+        point_tail_features = point_features[:, 3:]
+        warped_xyz = self.model.rsv_scaler.warp_points(xyz)
+        if point_tail_features.shape[1] == 0:
+            return warped_xyz.contiguous()
+        return torch.cat((warped_xyz, point_tail_features), dim=1).contiguous()
+
+    def preprocess_points(self, batch_dict):
+        processed_points = {}
+        point_features = self._extract_single_batch_points(batch_dict, key='points')
+        point_features = self._reorder_lidar_first(point_features)
+        processed_points['points'] = self._warp_point_features(point_features)
+
+        if torch.is_tensor(batch_dict.get('points_mm', None)):
+            processed_points['points_mm'] = self._warp_point_features(
+                self._extract_single_batch_points(batch_dict, key='points_mm')
+            )
+
+        return processed_points
+
+    def voxelize_points(self, processed_points, batch_dict):
+        use_lead_xyz = _batch_value_to_bool(batch_dict.get('use_lead_xyz', True), default=True)
+        branch_suffix = {
+            'points': '',
+            'points_mm': '_mm',
+        }
+
+        for point_key, points in processed_points.items():
+            voxelizer = self._get_voxelizer(points.shape[1])
+            voxels, voxel_coords, voxel_num_points = voxelizer(points)
+
+            if not use_lead_xyz:
+                voxels = voxels[..., 3:]
+
+            batch_column = torch.zeros((voxel_coords.shape[0], 1), dtype=voxel_coords.dtype, device=voxel_coords.device)
+            suffix = branch_suffix[point_key]
+            batch_dict['voxels' + suffix] = voxels.contiguous()
+            batch_dict['voxel_coords' + suffix] = torch.cat((batch_column, voxel_coords), dim=1).contiguous()
+            batch_dict['voxel_num_points' + suffix] = voxel_num_points
+
+        return batch_dict
+
+    def run_vfe(self, batch_dict):
+        if getattr(self.model, 'vfe', None) is None:
+            raise ValueError('VirConv latency profiling expected model.vfe to be present')
+        return self.model.vfe(batch_dict)
+
+    def run_backbone_3d(self, batch_dict):
+        if getattr(self.model, 'backbone_3d', None) is None:
+            raise ValueError('VirConv latency profiling expected model.backbone_3d to be present')
+        return self.model.backbone_3d(batch_dict)
+
+    def run_bev_backbone(self, batch_dict):
+        if getattr(self.model, 'map_to_bev_module', None) is not None:
+            batch_dict = self.model.map_to_bev_module(batch_dict)
+        if getattr(self.model, 'backbone_2d', None) is not None:
+            batch_dict = self.model.backbone_2d(batch_dict)
+        return batch_dict
+
+    def run_dense_head(self, batch_dict):
+        if getattr(self.model, 'dense_head', None) is None:
+            raise ValueError('VirConv latency profiling expected model.dense_head to be present')
+        return self.model.dense_head(batch_dict)
+
+    def run_roi_head(self, batch_dict):
+        if getattr(self.model, 'roi_head', None) is None:
+            return batch_dict
+        return self.model.roi_head(batch_dict)
+
+    def run_post_processing(self, batch_dict):
+        batch_dict['infer_time'] = True
+        return self.model.post_processing(batch_dict)
+
+    def profile_batch(self, batch_dict):
+        stage_times_ms = {}
+        total_start_event = torch.cuda.Event(enable_timing=True)
+        total_end_event = torch.cuda.Event(enable_timing=True)
+
+        torch.cuda.synchronize(device=self.device)
+        total_start_event.record()
+
+        processed_points, stage_times_ms[VIRCONV_PROFILE_STAGES[0]] = _measure_cuda_stage(
+            lambda: self.preprocess_points(batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[1]] = _measure_cuda_stage(
+            lambda: self.voxelize_points(processed_points, batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[2]] = _measure_cuda_stage(
+            lambda: self.run_vfe(batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[3]] = _measure_cuda_stage(
+            lambda: self.run_backbone_3d(batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[4]] = _measure_cuda_stage(
+            lambda: self.run_bev_backbone(batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[5]] = _measure_cuda_stage(
+            lambda: self.run_dense_head(batch_dict), self.device
+        )
+        batch_dict, stage_times_ms[VIRCONV_PROFILE_STAGES[6]] = _measure_cuda_stage(
+            lambda: self.run_roi_head(batch_dict), self.device
+        )
+        _, stage_times_ms[VIRCONV_PROFILE_STAGES[7]] = _measure_cuda_stage(
+            lambda: self.run_post_processing(batch_dict), self.device
+        )
+
+        total_end_event.record()
+        torch.cuda.synchronize(device=self.device)
+        total_time_ms = total_start_event.elapsed_time(total_end_event)
+        return stage_times_ms, total_time_ms
 
 
 def statistics_info(cfg, ret_dict, metric, disp_dict):
@@ -423,6 +663,108 @@ def cal_inference_time(cfg, model, dataloader, logger):
     logger.info('*********************************************************')
 
     return avg_latency, fps
+
+
+def profile_latency_breakdown(cfg, args, model, dataloader, logger, result_dir=None):
+    logger.info('*************** PROFILING VIRCONV LATENCY BREAKDOWN *****************')
+
+    model.eval()
+    profiler = VirConvLatencyProfiler(cfg, model)
+
+    _validate_nonempty_dataloader(cfg, dataloader)
+
+    warmup_iters = max(int(getattr(args, 'profile_warmup_iters', 20)), 0)
+    requested_profile_iters = max(int(getattr(args, 'profile_max_iters', 0)), 0)
+    available_profile_iters = len(dataloader) - warmup_iters
+    if available_profile_iters <= 0:
+        raise ValueError(
+            f'Warm-up iters ({warmup_iters}) must be smaller than the dataloader length ({len(dataloader)})'
+        )
+
+    measured_target = available_profile_iters if requested_profile_iters == 0 else min(requested_profile_iters, available_profile_iters)
+    stage_meters = {stage_name: common_utils.AverageMeter() for stage_name in VIRCONV_PROFILE_STAGES}
+    total_meter = common_utils.AverageMeter()
+
+    progress_total = warmup_iters + measured_target
+    progress_bar = None
+    if cfg.LOCAL_RANK == 0:
+        progress_bar = tqdm.tqdm(total=progress_total, leave=True, desc='latency_profile', dynamic_ncols=True)
+
+    measured_iters = 0
+    with torch.no_grad():
+        for batch_idx, batch_dict in enumerate(dataloader):
+            if measured_iters >= measured_target:
+                break
+
+            load_data_to_gpu(batch_dict)
+
+            if batch_idx < warmup_iters:
+                profiler.profile_batch(batch_dict)
+                if progress_bar is not None:
+                    progress_bar.set_postfix({'phase': f'warmup {batch_idx + 1}/{warmup_iters}'})
+                    progress_bar.update()
+                continue
+
+            stage_times_ms, total_time_ms = profiler.profile_batch(batch_dict)
+            for stage_name, stage_time_ms in stage_times_ms.items():
+                stage_meters[stage_name].update(stage_time_ms)
+            total_meter.update(total_time_ms)
+            measured_iters += 1
+
+            if progress_bar is not None:
+                progress_bar.set_postfix({
+                    'phase': 'measure',
+                    'total_ms': f'{total_meter.val:.2f} ({total_meter.avg:.2f})'
+                })
+                progress_bar.update()
+
+    if progress_bar is not None:
+        progress_bar.close()
+
+    if measured_iters == 0:
+        raise ValueError('No iterations were profiled after warm-up')
+
+    total_avg_ms = float(total_meter.avg)
+    stage_sum_avg_ms = float(sum(stage_meters[stage_name].avg for stage_name in VIRCONV_PROFILE_STAGES))
+
+    logger.info('**************** VirConv Latency Breakdown *****************')
+    logger.info(f'Warmup Iters   : {warmup_iters}')
+    logger.info(f'Measured Iters : {measured_iters}')
+    logger.info(f'Total Avg      : {total_avg_ms:.3f} ms / frame')
+    logger.info(f'Stage Sum Avg  : {stage_sum_avg_ms:.3f} ms / frame')
+    logger.info(f'Gap            : {abs(total_avg_ms - stage_sum_avg_ms):.3f} ms')
+    logger.info(f'{"Stage":<40} {"Avg(ms)":>12} {"PctTotal":>10} {"Iters":>8}')
+    for stage_name in VIRCONV_PROFILE_STAGES:
+        avg_ms = float(stage_meters[stage_name].avg)
+        pct_total = (avg_ms / total_avg_ms * 100.0) if total_avg_ms > 0 else 0.0
+        logger.info(f'{stage_name:<40} {avg_ms:>12.3f} {pct_total:>9.2f}% {stage_meters[stage_name].count:>8}')
+    logger.info('***********************************************************')
+
+    result_dict = {
+        'model_name': cfg.MODEL.NAME,
+        'cfg_file': args.cfg_file,
+        'warmup_iters': warmup_iters,
+        'measured_iters': measured_iters,
+        'stage_stats': {},
+        'total_avg_ms': total_avg_ms,
+        'stage_sum_avg_ms': stage_sum_avg_ms,
+    }
+    for stage_name in VIRCONV_PROFILE_STAGES:
+        avg_ms = float(stage_meters[stage_name].avg)
+        result_dict['stage_stats'][stage_name] = {
+            'avg_ms': avg_ms,
+            'pct_total': (avg_ms / total_avg_ms * 100.0) if total_avg_ms > 0 else 0.0,
+            'num_iters': int(stage_meters[stage_name].count),
+        }
+
+    if getattr(args, 'profile_save_json', False) and result_dir is not None:
+        result_dir.mkdir(parents=True, exist_ok=True)
+        output_json = result_dir / 'latency_breakdown.json'
+        with open(output_json, 'w') as f:
+            json.dump(result_dict, f, indent=2)
+        logger.info('Latency breakdown JSON is saved to %s' % output_json)
+
+    return result_dict
 
 if __name__ == '__main__':
     pass

@@ -29,10 +29,13 @@ class Detector3DTemplate(nn.Module):
             rsv_cfg = getattr(self.model_cfg, 'RSV', {})
             self.rsv_scaler = RadialScaleTorch(
                 r_far=rsv_cfg.get('R_FAR', 50.0),
-                s_max=rsv_cfg.get('S_MAX', 3.0),
+                s_max=rsv_cfg.get('S_MAX', 2.0),
                 beta=rsv_cfg.get('BETA', 1.5),
             )
-            self.box_adapter = RSVBoxAdapter(self.rsv_scaler)
+            self.box_adapter = RSVBoxAdapter(
+                self.rsv_scaler,
+                box_warp_method=rsv_cfg.get('BOX_WARP_METHOD', 'center_scale')
+            )
 
         self.module_topology = [
             'vfe', 'backbone_3d', 'map_to_bev_module',

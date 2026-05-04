@@ -39,6 +39,14 @@ def parse_config():
     parser.add_argument('--ckpt_dir', type=str, default=None, help='specify a ckpt directory to be evaluated if needed')
     parser.add_argument('--save_to_file', action='store_true', default=False, help='')
     parser.add_argument('--infer_time', action='store_true', default=False, help='calculate inference latency')
+    parser.add_argument('--profile_latency_breakdown', action='store_true', default=False,
+                        help='profile VirConv-L end-to-end latency breakdown with CUDA events')
+    parser.add_argument('--profile_warmup_iters', type=int, default=20,
+                        help='number of warm-up iterations before measuring latency breakdown')
+    parser.add_argument('--profile_max_iters', type=int, default=0,
+                        help='number of measured iterations after warm-up, 0 means all remaining iterations')
+    parser.add_argument('--profile_save_json', action='store_true', default=False,
+                        help='save latency breakdown summary to JSON')
 
     args = parser.parse_args()
 
@@ -59,6 +67,12 @@ def eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id
     # load checkpoint
     model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=dist_test)
     model.cuda()
+
+    if getattr(args, 'profile_latency_breakdown', False):
+        eval_utils.profile_latency_breakdown(
+            cfg, args, model, test_loader, logger, result_dir=eval_output_dir
+        )
+        return
 
     if getattr(args, 'infer_time', False):
         eval_utils.cal_inference_time(cfg, model, test_loader, logger)
@@ -144,6 +158,22 @@ def main():
     else:
         assert args.batch_size % total_gpus == 0, 'Batch size should match the number of gpus'
         args.batch_size = args.batch_size // total_gpus
+
+    if args.profile_latency_breakdown:
+        if args.infer_time:
+            raise ValueError('--profile_latency_breakdown cannot be used together with --infer_time')
+        if args.eval_all:
+            raise ValueError('--profile_latency_breakdown does not support --eval_all')
+        if dist_test:
+            raise ValueError('--profile_latency_breakdown only supports single-process evaluation')
+        if args.batch_size != 1:
+            raise ValueError(f'--profile_latency_breakdown requires batch_size=1, got {args.batch_size}')
+        if cfg.MODEL.NAME != 'VoxelRCNN':
+            raise ValueError(f'--profile_latency_breakdown only supports VoxelRCNN-based VirConv models, got {cfg.MODEL.NAME}')
+        if args.profile_warmup_iters < 0:
+            raise ValueError('--profile_warmup_iters must be non-negative')
+        if args.profile_max_iters < 0:
+            raise ValueError('--profile_max_iters must be non-negative')
 
     output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
     output_dir.mkdir(parents=True, exist_ok=True)
