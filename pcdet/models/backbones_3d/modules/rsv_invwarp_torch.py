@@ -7,24 +7,43 @@ class RadialScaleTorch(nn.Module):
     """
     Radial Scaling in Torch, consistent with RadialScalingVoxelization (RSV).
 
-    s(r) = 1 + (s_max - 1) * exp(-beta * r / r_far)
+    exp schedule:
+        s(r) = 1 + (s_max - 1) * exp(-beta * r / r_far)
+    linear schedule:
+        s(r) = s_max - (s_max - 1) * r / r_far, when r < r_far
+             = 1, otherwise
     Forward: (x,y,z) -> (u,v,w) by multiplying s(r) in XY
     Inverse: fixed-point iteration to recover (x,y) from (u,v)
     """
 
-    def __init__(self, r_far=50.0, s_max=2.0, beta=1.5, eps=1e-6):
+    def __init__(self, r_far=50.0, s_max=2.0, beta=1.5, eps=1e-6, schedule='exp'):
         super().__init__()
         self.r_far = float(r_far)
         self.s_max = float(s_max)
         self.beta = float(beta)
         self.eps = float(eps)
+        self.schedule = self._normalize_schedule(schedule)
         assert self.r_far > 0 and self.s_max >= 1.0
+        if self.schedule == 'linear':
+            assert self.s_max <= 2.0, 'linear RSV requires s_max <= 2.0 for a monotonic inverse warp'
         self.scale_delta = self.s_max - 1.0
         self.beta_over_r_far = self.beta / max(self.r_far, 1e-6)
         self.inv_s_max = 1.0 / max(self.s_max, 1.0)
 
+    @staticmethod
+    def _normalize_schedule(schedule):
+        schedule = str(schedule).lower()
+        if schedule in ('exp', 'exponential'):
+            return 'exp'
+        if schedule in ('linear', 'lin'):
+            return 'linear'
+        raise ValueError(f'Unsupported RSV schedule: {schedule}')
+
     def s_of_r(self, r: torch.Tensor) -> torch.Tensor:
-        """Exponential decay scale: s(r) = 1 + (s_max - 1) * exp(-beta * r / r_far)"""
+        """Radial scale for the configured RSV schedule."""
+        if self.schedule == 'linear':
+            linear_s = self.s_max - self.scale_delta * (r / max(self.r_far, 1e-6))
+            return torch.where(r < self.r_far, linear_s, torch.ones_like(r))
         return 1.0 + self.scale_delta * torch.exp(-self.beta_over_r_far * r)
 
     @torch.no_grad()
@@ -59,6 +78,13 @@ class RadialScaleTorch(nn.Module):
         u, v, w = uvw[:, 0], uvw[:, 1], uvw[:, 2]
         rho = torch.sqrt(u * u + v * v)
 
+        if self.schedule == 'linear':
+            r = self._linear_inverse_radius(rho)
+            scale = r / torch.clamp(rho, min=self.eps)
+            x = u * scale
+            y = v * scale
+            return torch.stack([x, y, w], dim=-1)
+
         x = torch.zeros_like(u)
         y = torch.zeros_like(v)
 
@@ -90,6 +116,20 @@ class RadialScaleTorch(nn.Module):
         x[nonzero] = u_nz * scale
         y[nonzero] = v_nz * scale
         return torch.stack([x, y, w], dim=-1)
+
+    def _linear_inverse_radius(self, rho: torch.Tensor) -> torch.Tensor:
+        if self.scale_delta <= self.eps:
+            return rho
+
+        r = rho.clone()
+        linear_mask = rho <= self.r_far
+        if torch.any(linear_mask):
+            rho_linear = rho[linear_mask]
+            discr = self.s_max * self.s_max - 4.0 * self.scale_delta * rho_linear / max(self.r_far, 1e-6)
+            discr = torch.clamp(discr, min=0.0)
+            r_linear = self.r_far * (self.s_max - torch.sqrt(discr)) / (2.0 * self.scale_delta)
+            r[linear_mask] = torch.clamp(r_linear, min=0.0, max=self.r_far)
+        return r
 
 
 @torch.no_grad()

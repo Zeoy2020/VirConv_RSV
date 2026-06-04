@@ -41,6 +41,8 @@ def parse_config():
     parser.add_argument('--infer_time', action='store_true', default=False, help='calculate inference latency')
     parser.add_argument('--profile_latency_breakdown', action='store_true', default=False,
                         help='profile VirConv-L end-to-end latency breakdown with CUDA events')
+    parser.add_argument('--profile_runtime_stats', action='store_true', default=False,
+                        help='profile latency, active voxels, and PyTorch peak memory on validation')
     parser.add_argument('--profile_warmup_iters', type=int, default=20,
                         help='number of warm-up iterations before measuring latency breakdown')
     parser.add_argument('--profile_max_iters', type=int, default=0,
@@ -70,6 +72,12 @@ def eval_single_ckpt(model, test_loader, args, eval_output_dir, logger, epoch_id
 
     if getattr(args, 'profile_latency_breakdown', False):
         eval_utils.profile_latency_breakdown(
+            cfg, args, model, test_loader, logger, result_dir=eval_output_dir
+        )
+        return
+
+    if getattr(args, 'profile_runtime_stats', False):
+        eval_utils.profile_runtime_stats(
             cfg, args, model, test_loader, logger, result_dir=eval_output_dir
         )
         return
@@ -127,7 +135,7 @@ def repeat_eval_ckpt(model, test_loader, args, eval_output_dir, logger, ckpt_dir
 
         # start evaluation
         cur_result_dir = eval_output_dir / ('epoch_%s' % cur_epoch_id) / cfg.DATA_CONFIG.DATA_SPLIT['test']
-        tb_dict = eval_utils.eval_one_epoch(
+        tb_dict = eval_utils.eval_one_epoch_dist(
             cfg, model, test_loader, cur_epoch_id, logger, dist_test=dist_test,
             result_dir=cur_result_dir, save_to_file=args.save_to_file
         )
@@ -159,17 +167,26 @@ def main():
         assert args.batch_size % total_gpus == 0, 'Batch size should match the number of gpus'
         args.batch_size = args.batch_size // total_gpus
 
-    if args.profile_latency_breakdown:
+    profile_flags = {
+        '--profile_latency_breakdown': args.profile_latency_breakdown,
+        '--profile_runtime_stats': args.profile_runtime_stats,
+    }
+    active_profile_flags = [flag_name for flag_name, is_enabled in profile_flags.items() if is_enabled]
+    if len(active_profile_flags) > 1:
+        raise ValueError('Profiling flags are mutually exclusive: %s' % ', '.join(active_profile_flags))
+
+    if active_profile_flags:
+        profile_arg = active_profile_flags[0]
         if args.infer_time:
-            raise ValueError('--profile_latency_breakdown cannot be used together with --infer_time')
+            raise ValueError(f'{profile_arg} cannot be used together with --infer_time')
         if args.eval_all:
-            raise ValueError('--profile_latency_breakdown does not support --eval_all')
+            raise ValueError(f'{profile_arg} does not support --eval_all')
         if dist_test:
-            raise ValueError('--profile_latency_breakdown only supports single-process evaluation')
+            raise ValueError(f'{profile_arg} only supports single-process evaluation')
         if args.batch_size != 1:
-            raise ValueError(f'--profile_latency_breakdown requires batch_size=1, got {args.batch_size}')
+            raise ValueError(f'{profile_arg} requires batch_size=1, got {args.batch_size}')
         if cfg.MODEL.NAME != 'VoxelRCNN':
-            raise ValueError(f'--profile_latency_breakdown only supports VoxelRCNN-based VirConv models, got {cfg.MODEL.NAME}')
+            raise ValueError(f'{profile_arg} only supports VoxelRCNN-based VirConv models, got {cfg.MODEL.NAME}')
         if args.profile_warmup_iters < 0:
             raise ValueError('--profile_warmup_iters must be non-negative')
         if args.profile_max_iters < 0:

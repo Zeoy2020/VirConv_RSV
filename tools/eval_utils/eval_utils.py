@@ -58,12 +58,79 @@ def _measure_cuda_stage(stage_fn, device):
     return stage_output, start_event.elapsed_time(end_event)
 
 
+def _measure_synchronized_wall_time_ms(stage_fn, device):
+    torch.cuda.synchronize(device=device)
+    start_time = time.perf_counter()
+    stage_output = stage_fn()
+    torch.cuda.synchronize(device=device)
+    end_time = time.perf_counter()
+    return stage_output, (end_time - start_time) * 1000.0
+
+
 def _validate_nonempty_dataloader(cfg, dataloader):
     if len(dataloader) == 0:
         raise ValueError(
             'The evaluation dataloader is empty. '
             f'Check DATA_CONFIG.DATA_PATH={cfg.DATA_CONFIG.DATA_PATH} and ensure KITTI infos/split files exist.'
         )
+
+
+def _compute_resource_stats_from_counts(counts):
+    counts_array = np.asarray(counts, dtype=np.float64)
+    if counts_array.size == 0:
+        raise ValueError('No active voxel counts were collected during runtime profiling')
+    return {
+        'avg': float(counts_array.mean()),
+        'min': int(counts_array.min()),
+        'median': float(np.median(counts_array)),
+        'p95': float(np.percentile(counts_array, 95)),
+        'max': int(counts_array.max()),
+    }
+
+
+def _iter_input_voxel_coord_tensors(batch_dict):
+    counted_keys = []
+    for key in sorted(batch_dict.keys()):
+        if not key.startswith('voxel_coords'):
+            continue
+
+        voxel_coords = batch_dict[key]
+        if voxel_coords is None:
+            continue
+        if isinstance(voxel_coords, list):
+            raise TypeError(
+                f'Runtime profiling does not support list-based {key} '
+                '(e.g. test-time double flip)'
+            )
+        if not torch.is_tensor(voxel_coords):
+            raise TypeError(f'batch_dict["{key}"] must be a torch.Tensor after load_data_to_gpu')
+        if voxel_coords.ndim != 2:
+            raise ValueError(f'Unexpected {key} shape: {tuple(voxel_coords.shape)}')
+
+        counted_keys.append(key)
+        yield key, voxel_coords
+
+    if len(counted_keys) == 0:
+        raise KeyError('No input voxel coordinate tensors were found in batch_dict during runtime profiling')
+
+
+def _extract_total_active_voxel_count(batch_dict):
+    total_active_voxels = 0
+    counted_keys = []
+    for key, voxel_coords in _iter_input_voxel_coord_tensors(batch_dict):
+        counted_keys.append(key)
+        total_active_voxels += int(voxel_coords.shape[0])
+    return total_active_voxels, counted_keys
+
+
+def _iterate_dataloader_for_iters(dataloader, num_iters):
+    completed_iters = 0
+    while completed_iters < num_iters:
+        for batch_dict in dataloader:
+            yield batch_dict
+            completed_iters += 1
+            if completed_iters >= num_iters:
+                break
 
 
 class VirConvLatencyProfiler:
@@ -763,6 +830,148 @@ def profile_latency_breakdown(cfg, args, model, dataloader, logger, result_dir=N
         with open(output_json, 'w') as f:
             json.dump(result_dict, f, indent=2)
         logger.info('Latency breakdown JSON is saved to %s' % output_json)
+
+    return result_dict
+
+
+def profile_runtime_stats(cfg, args, model, dataloader, logger, result_dir=None):
+    logger.info('**************** PROFILING VIRCONV RUNTIME STATS ****************')
+    logger.info('Latency uses synchronized wall-clock time around model(batch_dict) after batch data is loaded to GPU.')
+    logger.info('Active voxels are counted as the sum of all input batch_dict["voxel_coords*"] tensors before model forward.')
+    logger.info('Peak memory uses torch.cuda.reset_peak_memory_stats() after warm-up and torch.cuda.max_memory_allocated() after profiling.')
+
+    model.eval()
+    device = next((model.module if hasattr(model, 'module') else model).parameters()).device
+
+    _validate_nonempty_dataloader(cfg, dataloader)
+
+    warmup_iters = max(int(getattr(args, 'profile_warmup_iters', 20)), 0)
+    requested_profile_iters = max(int(getattr(args, 'profile_max_iters', 0)), 0)
+
+    available_profile_iters = len(dataloader) - warmup_iters
+    if available_profile_iters <= 0:
+        raise ValueError(
+            f'Warm-up iters ({warmup_iters}) must be smaller than the dataloader length ({len(dataloader)})'
+        )
+
+    measured_target = available_profile_iters if requested_profile_iters == 0 else min(requested_profile_iters, available_profile_iters)
+    if measured_target <= 0:
+        raise ValueError('No iterations are available for runtime profiling')
+
+    progress_bar = None
+    if cfg.LOCAL_RANK == 0:
+        progress_bar = tqdm.tqdm(
+            total=warmup_iters + measured_target,
+            leave=True,
+            desc='runtime_profile',
+            dynamic_ncols=True
+        )
+
+    counted_voxel_coord_keys = None
+    with torch.no_grad():
+        latency_meter = common_utils.AverageMeter()
+        active_voxel_counts = []
+        measured_iters = 0
+        peak_memory_reset = False
+
+        for batch_idx, batch_dict in enumerate(dataloader):
+            if measured_iters >= measured_target:
+                break
+
+            batch_dict['infer_time'] = True
+            load_data_to_gpu(batch_dict)
+
+            if batch_idx < warmup_iters:
+                model(batch_dict)
+
+                if progress_bar is not None:
+                    progress_bar.set_postfix({'phase': f'warmup {batch_idx + 1}/{warmup_iters}'})
+                    progress_bar.update()
+                continue
+
+            if not peak_memory_reset:
+                torch.cuda.synchronize(device=device)
+                torch.cuda.reset_peak_memory_stats(device=device)
+                peak_memory_reset = True
+
+            active_voxels, current_voxel_coord_keys = _extract_total_active_voxel_count(batch_dict)
+            if counted_voxel_coord_keys is None:
+                counted_voxel_coord_keys = current_voxel_coord_keys
+
+            # model(batch_dict) mutates batch_dict in-place, so a second forward on the same
+            # batch can look artificially faster. Keep latency measurement to one forward only.
+            _, latency_ms = _measure_synchronized_wall_time_ms(lambda: model(batch_dict), device)
+            latency_meter.update(latency_ms)
+            active_voxel_counts.append(active_voxels)
+            measured_iters += 1
+
+            if progress_bar is not None:
+                current_peak_mb = torch.cuda.max_memory_allocated(device=device) / (1024.0 ** 2)
+                progress_bar.set_postfix({
+                    'phase': 'measure',
+                    'latency_ms': f'{latency_meter.val:.2f} ({latency_meter.avg:.2f})',
+                    'active_voxels': active_voxels,
+                    'peak_mem_mb': f'{current_peak_mb:.1f}',
+                })
+                progress_bar.update()
+
+    if progress_bar is not None:
+        progress_bar.close()
+
+    if measured_iters == 0:
+        raise ValueError('No iterations were profiled after warm-up')
+
+    torch.cuda.synchronize(device=device)
+    peak_memory_allocated_bytes = int(torch.cuda.max_memory_allocated(device=device))
+    peak_memory_allocated_mb = float(peak_memory_allocated_bytes / (1024.0 ** 2))
+    peak_memory_reserved_bytes = int(torch.cuda.max_memory_reserved(device=device))
+    peak_memory_reserved_mb = float(peak_memory_reserved_bytes / (1024.0 ** 2))
+    active_voxel_stats = _compute_resource_stats_from_counts(active_voxel_counts)
+    avg_latency_ms = float(latency_meter.avg)
+    fps = float(1000.0 / avg_latency_ms) if avg_latency_ms > 0 else 0.0
+
+    logger.info('**************** VirConv Runtime Stats *****************')
+    logger.info(f'Model Name                 : {cfg.MODEL.NAME}')
+    logger.info(f'Warmup Iters               : {warmup_iters}')
+    logger.info(f'Measured Iters             : {measured_iters}')
+    logger.info(f'Avg Latency                : {avg_latency_ms:.3f} ms / frame')
+    logger.info(f'FPS                        : {fps:.3f} frame / s')
+    logger.info(f'Avg Active Voxels          : {active_voxel_stats["avg"]:.3f}')
+    logger.info(f'Median Active Voxels       : {active_voxel_stats["median"]:.3f}')
+    logger.info(f'P95 Active Voxels          : {active_voxel_stats["p95"]:.3f}')
+    logger.info(f'Min Active Voxels          : {active_voxel_stats["min"]}')
+    logger.info(f'Max Active Voxels          : {active_voxel_stats["max"]}')
+    logger.info(f'Peak Memory Allocated      : {peak_memory_allocated_mb:.3f} MB')
+    logger.info(f'Peak Memory Reserved       : {peak_memory_reserved_mb:.3f} MB')
+    logger.info('*******************************************************')
+
+    result_dict = {
+        'model_name': cfg.MODEL.NAME,
+        'cfg_file': args.cfg_file,
+        'ckpt': args.ckpt,
+        'batch_size': int(args.batch_size),
+        'warmup_iters': int(warmup_iters),
+        'measured_iters': int(measured_iters),
+        'latency_definition': 'wall-clock elapsed time with torch.cuda.synchronize() before and after model(batch_dict), after load_data_to_gpu(batch_dict)',
+        'avg_latency_ms': avg_latency_ms,
+        'fps': fps,
+        'active_voxel_definition': 'sum(batch_dict[key].shape[0] for key in voxel_coord_keys) before model forward',
+        'active_voxel_coord_keys': counted_voxel_coord_keys or [],
+        'active_voxel_stats': active_voxel_stats,
+        'avg_active_voxels': active_voxel_stats['avg'],
+        'peak_memory_definition': 'torch.cuda.max_memory_allocated(device) after resetting peak stats immediately after warm-up',
+        'peak_memory_allocated_bytes': peak_memory_allocated_bytes,
+        'peak_memory_allocated_mb': peak_memory_allocated_mb,
+        'peak_memory_reserved_bytes': peak_memory_reserved_bytes,
+        'peak_memory_reserved_mb': peak_memory_reserved_mb,
+    }
+
+    if getattr(args, 'profile_save_json', False) and result_dir is not None:
+        result_dir.mkdir(parents=True, exist_ok=True)
+        output_json = result_dir / 'runtime_stats.json'
+        with open(output_json, 'w') as f:
+            json.dump(result_dict, f, indent=2)
+        logger.info('Runtime stats JSON is saved to %s' % output_json)
 
     return result_dict
 

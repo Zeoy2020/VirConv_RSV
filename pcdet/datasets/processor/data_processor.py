@@ -197,7 +197,8 @@ class DataProcessor(object):
         Also removes uvw from voxel features if upstream set use_lead_xyz=False.
         """
         r_far, s_max, beta = config.R_FAR, config.S_MAX, config.BETA
-        cfg = RadialScaleConfig(r_far=r_far, s_max=s_max, beta=beta)
+        schedule = config.get('SCHEDULE', 'exp')
+        cfg = RadialScaleConfig(r_far=r_far, s_max=s_max, beta=beta, schedule=schedule)
         scaler = RadialScalingVoxelization(cfg)
 
         if data_dict is None:

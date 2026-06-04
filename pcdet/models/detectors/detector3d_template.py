@@ -31,6 +31,7 @@ class Detector3DTemplate(nn.Module):
                 r_far=rsv_cfg.get('R_FAR', 50.0),
                 s_max=rsv_cfg.get('S_MAX', 2.0),
                 beta=rsv_cfg.get('BETA', 1.5),
+                schedule=rsv_cfg.get('SCHEDULE', 'exp'),
             )
             self.box_adapter = RSVBoxAdapter(
                 self.rsv_scaler,
